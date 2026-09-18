@@ -35,6 +35,14 @@ async def test_manual_approval_flow(client):
     resp = await client.get("/drafts?status=pending", headers=headers)
     assert any(d["id"] == draft_id for d in resp.json())
 
+    # y en la bandeja enriquecida (/inbox) con el texto del huésped
+    resp = await client.get("/inbox", headers=headers)
+    inbox = resp.json()
+    assert len(inbox) == 1
+    assert inbox[0]["draft"]["id"] == draft_id
+    assert inbox[0]["inbound_text"] == "Hola, tengo una duda"
+    assert inbox[0]["property_name"] == "Piso Centro"
+
     # aprobar (con edición)
     resp = await client.post(
         f"/drafts/{draft_id}/approve",

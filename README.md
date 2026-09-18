@@ -4,8 +4,10 @@
 huéspedes por WhatsApp con respuestas ancladas a la información de cada piso;
 el anfitrión **aprueba, edita o envía** desde un panel, con registro de todo.
 
-> Estado: **Fase 2 — núcleo funcional** (auth, pisos, conocimiento, conversaciones,
-> canal simulado, IA mock, borradores con aprobación/auto-envío y auditoría). Ver el roadmap abajo.
+> Estado: **Fase 2 — núcleo funcional + interfaz** (auth, pisos, conocimiento,
+> conversaciones, canal simulado, IA mock, borradores con aprobación/auto-envío y
+> auditoría, y un panel React/TS con bandeja de aprobación y simulador de chat).
+> Ver el roadmap abajo y las [capturas](#interfaz).
 
 ## API (Fase 2)
 - `POST /auth/register` · `POST /auth/login` · `GET /auth/me`
@@ -15,6 +17,25 @@ el anfitrión **aprueba, edita o envía** desde un panel, con registro de todo.
 - `GET /drafts?status=pending` — cola de aprobación · `POST /drafts/{id}/approve` (con `edited_text` opcional)
 
 Explora todo en `http://localhost:8000/docs`.
+
+## Interfaz
+
+Panel del anfitrión (React + TypeScript + Tailwind) con la **bandeja de
+aprobación** como pantalla principal y un **simulador de chat** de huésped.
+
+**Bandeja de aprobación** — el anfitrión revisa la respuesta de la IA; el
+medidor de confianza (en latón) indica cuán segura está y si es auto-enviable:
+
+![Bandeja de aprobación](docs/img/bandeja-aprobacion.jpg)
+
+**Simulador de huésped** — la IA responde al instante con la información del
+piso cuando está segura:
+
+![Simulador de huésped](docs/img/simulador.jpg)
+
+| Acceso | Pisos y conocimiento |
+|:---:|:---:|
+| ![Login](docs/img/login.jpg) | ![Pisos](docs/img/pisos-conocimiento.jpg) |
 
 ## Por qué
 Los pisos turísticos sin recepción reciben las mismas preguntas una y otra vez

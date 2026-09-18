@@ -12,6 +12,7 @@ from app.schemas import (
     DraftOut,
     InboundMessage,
     InboundResult,
+    InboxItem,
     MessageOut,
 )
 from app.services.conversation import handle_inbound
@@ -77,6 +78,39 @@ async def conversation_messages(
         select(Message).where(Message.conversation_id == conversation_id).order_by(Message.id)
     )
     return list(result.scalars().all())
+
+
+@router.get("/inbox", response_model=list[InboxItem])
+async def inbox(
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> list[InboxItem]:
+    result = await session.execute(
+        select(
+            Draft,
+            Message.text,
+            Conversation.id,
+            Conversation.guest_ref,
+            Property.id,
+            Property.name,
+        )
+        .join(Message, Draft.inbound_message_id == Message.id)
+        .join(Conversation, Message.conversation_id == Conversation.id)
+        .join(Property, Conversation.property_id == Property.id)
+        .where(Property.owner_id == user.id, Draft.status == "pending")
+        .order_by(Draft.id.desc())
+    )
+    return [
+        InboxItem(
+            draft=DraftOut.model_validate(draft),
+            inbound_text=inbound_text,
+            conversation_id=conversation_id,
+            guest_ref=guest_ref,
+            property_id=property_id,
+            property_name=property_name,
+        )
+        for draft, inbound_text, conversation_id, guest_ref, property_id, property_name in result.all()
+    ]
 
 
 @router.get("/drafts", response_model=list[DraftOut])

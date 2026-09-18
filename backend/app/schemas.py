@@ -96,3 +96,13 @@ class InboundResult(BaseModel):
 
 class ApproveRequest(BaseModel):
     edited_text: str | None = None
+
+
+class InboxItem(BaseModel):
+    """Borrador pendiente enriquecido para la bandeja de aprobación."""
+    draft: DraftOut
+    inbound_text: str
+    guest_ref: str
+    conversation_id: int
+    property_id: int
+    property_name: str
