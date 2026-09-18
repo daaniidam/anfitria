@@ -4,7 +4,17 @@
 huéspedes por WhatsApp con respuestas ancladas a la información de cada piso;
 el anfitrión **aprueba, edita o envía** desde un panel, con registro de todo.
 
-> Estado: **Fase 1 — andamiaje** (esqueleto que arranca). Ver el roadmap abajo.
+> Estado: **Fase 2 — núcleo funcional** (auth, pisos, conocimiento, conversaciones,
+> canal simulado, IA mock, borradores con aprobación/auto-envío y auditoría). Ver el roadmap abajo.
+
+## API (Fase 2)
+- `POST /auth/register` · `POST /auth/login` · `GET /auth/me`
+- `POST /properties` · `GET /properties` · `POST/GET /properties/{id}/knowledge`
+- `POST /channels/sim/inbound` — simula un mensaje de huésped → genera **borrador** (o auto-envía si la confianza ≥ umbral)
+- `GET /conversations` · `GET /conversations/{id}/messages`
+- `GET /drafts?status=pending` — cola de aprobación · `POST /drafts/{id}/approve` (con `edited_text` opcional)
+
+Explora todo en `http://localhost:8000/docs`.
 
 ## Por qué
 Los pisos turísticos sin recepción reciben las mismas preguntas una y otra vez
@@ -51,7 +61,7 @@ anfitria/
 
 ## Roadmap
 1. **Andamiaje** — repo, compose, `/health`, React shell, Postgres/Redis. ✅
-2. **Núcleo** — auth, pisos, conocimiento, conversaciones, canal `sim`, IA `mock`, aprobación + auditoría.
+2. **Núcleo** — auth, pisos, conocimiento, conversaciones, canal `sim`, IA `mock`, aprobación + auditoría. ✅
 3. **RAG** — pgvector + embeddings; respuestas ancladas al piso.
 4. **Claude real** — adaptador `anthropic`.
 5. **WhatsApp real** — Meta Cloud API (número de test) + firma HMAC del webhook.

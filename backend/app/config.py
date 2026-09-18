@@ -13,6 +13,14 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://anfitria:anfitria@db:5432/anfitria"
     redis_url: str = "redis://redis:6379/0"
 
+    # Seguridad / JWT (cambiar secret_key en producción vía entorno)
+    secret_key: str = "dev-insecure-change-me-in-production-please-32b+"
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 60 * 24
+
+    # Umbral de confianza para auto-envío (0-1); por encima, la IA puede enviar sola
+    auto_send_threshold: float = 0.85
+
     # IA: "mock" (sin clave, por defecto) | "anthropic" (Claude real)
     ai_provider: str = "mock"
     anthropic_api_key: str | None = None

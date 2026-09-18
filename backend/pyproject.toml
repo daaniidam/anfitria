@@ -15,6 +15,9 @@ dependencies = [
     "arq>=0.26",
     "httpx>=0.28",
     "anthropic>=0.40",
+    "passlib>=1.7.4",
+    "pyjwt>=2.10",
+    "email-validator>=2.2",
 ]
 
 [dependency-groups]
@@ -22,6 +25,7 @@ dev = [
     "pytest>=8.3",
     "pytest-asyncio>=0.24",
     "ruff>=0.8",
+    "aiosqlite>=0.20",
 ]
 
 # App project (no se construye como paquete instalable)

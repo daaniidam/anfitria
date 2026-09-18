@@ -1,13 +1,23 @@
 """Punto de entrada de la API de AnfitrIA."""
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api import auth, conversations, properties
 from app.config import get_settings
+from app.db import init_db
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_db()
+    yield
 
 
 def create_app() -> FastAPI:
     settings = get_settings()
-    app = FastAPI(title=settings.app_name, version="0.1.0")
+    app = FastAPI(title=settings.app_name, version="0.1.0", lifespan=lifespan)
 
     app.add_middleware(
         CORSMiddleware,
@@ -27,6 +37,9 @@ def create_app() -> FastAPI:
             "channel_provider": settings.channel_provider,
         }
 
+    app.include_router(auth.router)
+    app.include_router(properties.router)
+    app.include_router(conversations.router)
     return app
 
 
