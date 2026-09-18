@@ -1,0 +1,59 @@
+---
+description: Visión global de AnfitrIA, stack, arquitectura y reglas de trabajo. Contexto base para cualquier tarea.
+alwaysApply: true
+---
+
+# AnfitrIA — conserje IA supervisado para alquiler vacacional
+
+## Qué es
+Los pisos turísticos (Airbnb) sin recepción atienden a los huéspedes por
+llamada/WhatsApp con preguntas repetitivas (check-in, wifi, cómo llegar, normas,
+recomendaciones). AnfitrIA es un **conserje con IA** que:
+1. Recibe el mensaje del huésped por **WhatsApp**.
+2. Redacta una respuesta **en el idioma del huésped** (ES/EN, auto-detección),
+   apoyándose en la **ficha de conocimiento de ESE piso** (RAG).
+3. **El anfitrión aprueba/edita/envía** desde un panel (o se auto-envía si la
+   confianza es alta). **Todo queda registrado** (trazabilidad / auditoría).
+
+**Principio no negociable:** IA **supervisada**, nunca caja negra. Siempre hay
+revisión humana posible y un registro de qué hizo la IA y por qué.
+
+## Stack
+- **Backend:** Python 3.12, **FastAPI** (async), Pydantic v2, **SQLAlchemy 2 async**,
+  Alembic. Cola de tareas con **Redis + ARQ**. Gestor de paquetes **uv**.
+- **Base de datos:** **PostgreSQL 16 + pgvector** (embeddings para el RAG).
+- **IA:** adaptador `mock` (sin clave) | `anthropic` (Claude). Ver `app/config.py`.
+- **Canal:** adaptador `sim` (WhatsApp simulado) | `whatsapp_cloud` (Meta Cloud API).
+- **Frontend:** **React + TypeScript + Vite + TailwindCSS** (panel del anfitrión
+  + chat de huésped simulado para la demo).
+- **Infra:** docker-compose (`db`, `redis`, `api`, `worker`, `web`).
+
+## Arquitectura (flujo)
+webhook/canal -> guarda mensaje -> **encola job (ARQ)** -> recupera conocimiento
+del piso (pgvector) -> **servicio IA** genera borrador + confianza -> panel de
+aprobación del anfitrión -> envío por el canal -> **AuditLog**.
+
+Diseña siempre con **adaptadores** (IA y canal) tras una interfaz, para poder
+cambiar de `mock`/`sim` a real sin tocar la lógica de negocio.
+
+## Roadmap por fases (estado actual: FASE 1 ✅ andamiaje)
+1. **Andamiaje**: repo, docker-compose, FastAPI `/health`, React shell, Postgres/Redis. ✅
+2. **Núcleo**: auth anfitrión, pisos, conocimiento, conversaciones, canal `sim`,
+   IA `mock`, flujo de aprobación + auditoría. Demo end-to-end sin claves.
+3. **RAG**: pgvector + embeddings; respuestas ancladas al piso.
+4. **Claude real**: adaptador `anthropic` (usar el skill/guía de Claude API).
+5. **WhatsApp real**: Meta Cloud API (número de test) + verificación de webhook + firma HMAC.
+6. **Métricas + pulido**: panel de métricas, README con capturas, seed de demo.
+
+## Cómo ejecutar
+- Todo: `docker compose up --build` (API en :8000, web en :5173).
+- Tests backend: `cd backend && uv run pytest`.
+- Lint: `cd backend && uv run ruff check .`
+
+## Convenciones
+- Español en textos de producto y comentarios de dominio; código y símbolos en inglés.
+- Backend **async** de punta a punta; nada de I/O bloqueante en las rutas.
+- Validación con Pydantic; nada de datos sin tipar cruzando capas.
+- Cada acción que envía o modifica algo del huésped deja registro en `AuditLog`.
+- Seguridad del webhook de WhatsApp: verificar `hub.verify_token` y validar la
+  **firma HMAC** (`X-Hub-Signature-256`) antes de procesar.

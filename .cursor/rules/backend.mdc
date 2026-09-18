@@ -1,0 +1,22 @@
+---
+description: Convenciones del backend (FastAPI / SQLAlchemy async / ARQ).
+globs: backend/**
+---
+
+# Backend (FastAPI)
+
+- Estructura: `app/main.py` crea la app; rutas en `app/api/`; modelos SQLAlchemy
+  en `app/models/`; esquemas Pydantic en `app/schemas/`; lógica en `app/services/`;
+  adaptadores en `app/adapters/` (`ai/`, `channel/`).
+- **Async siempre**: sesiones `AsyncSession`, drivers async (`asyncpg`). No mezclar
+  I/O bloqueante en rutas; el trabajo pesado (IA) va al worker ARQ (`app/worker.py`).
+- **Adaptadores tras interfaz**:
+  - IA: `AIProvider.generate_reply(context) -> Draft` con impls `MockAI` y `AnthropicAI`,
+    seleccionadas por `settings.ai_provider`.
+  - Canal: `Channel.send(...)` / parseo de entrantes, con impls `SimChannel` y
+    `WhatsAppCloudChannel`, seleccionadas por `settings.channel_provider`.
+- Migraciones con **Alembic** (`alembic revision --autogenerate`); no crear tablas a mano.
+- Config solo desde `app/config.py` (`get_settings()`); nunca leer `os.environ` suelto.
+- Tests con **pytest** (`asyncio_mode=auto`), un test por comportamiento; usar
+  `httpx.AsyncClient`/`TestClient`. Añade test al arreglar un bug.
+- Estilo: **ruff** (E,F,I,UP,B), líneas ≤ 100.

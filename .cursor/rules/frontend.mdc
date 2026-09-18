@@ -1,0 +1,17 @@
+---
+description: Convenciones del frontend (React + TypeScript + Vite + Tailwind).
+globs: frontend/**
+---
+
+# Frontend (React + TS)
+
+- Componentes funcionales + hooks; **TypeScript estricto**, nada de `any`.
+- Estructura: `src/pages/` (vistas), `src/components/` (reutilizables),
+  `src/api/` (cliente HTTP tipado contra la API), `src/types/` (tipos del dominio).
+- Estado de servidor con fetching tipado (React Query recomendado en la fase de datos);
+  evita duplicar estado del servidor en estado local.
+- Estilos con **TailwindCSS**; sin CSS suelto salvo casos puntuales.
+- Dos zonas: **panel del anfitrión** (pisos, conocimiento, bandeja, cola de aprobación,
+  métricas) y **chat de huésped simulado** para la demo.
+- La URL de la API se lee de `import.meta.env.VITE_API_URL`.
+- Accesibilidad y estados de carga/error explícitos en cada vista.
