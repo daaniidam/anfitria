@@ -11,6 +11,7 @@ class AIContext:
     property_name: str
     knowledge: list[str] = field(default_factory=list)
     default_language: str = "es"
+    retrieval_score: float = 0.0
 
 
 @dataclass

@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.adapters.embeddings.factory import get_embedding_provider
 from app.db import get_session
 from app.deps import get_current_user
 from app.models import KnowledgeItem, Property, User
@@ -59,7 +60,13 @@ async def add_knowledge(
     session: AsyncSession = Depends(get_session),
 ) -> KnowledgeItem:
     await get_owned_property(session, property_id, user)
-    item = KnowledgeItem(property_id=property_id, category=data.category, content=data.content)
+    embedding = get_embedding_provider().embed([data.content])[0]
+    item = KnowledgeItem(
+        property_id=property_id,
+        category=data.category,
+        content=data.content,
+        embedding=embedding,
+    )
     session.add(item)
     await session.commit()
     await session.refresh(item)

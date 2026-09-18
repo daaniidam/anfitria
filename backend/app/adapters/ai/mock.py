@@ -1,8 +1,9 @@
 """Proveedor de IA simulado (sin clave). Determinista, para la demo y los tests.
 
-Detecta idioma (ES/EN) de forma sencilla, busca el fragmento de conocimiento
-más relevante por solapamiento de palabras y compone una respuesta. La confianza
-sube cuando encuentra conocimiento que encaja.
+Recibe el conocimiento ya recuperado por el RAG (los fragmentos más relevantes
+del piso) y compone la respuesta en el idioma del huésped. La confianza sube con
+la similitud de la recuperación; si no hubo nada relevante, responde con una
+frase de espera y baja confianza (nunca inventa datos del piso).
 """
 from __future__ import annotations
 
@@ -32,33 +33,19 @@ def detect_language(text: str, default: str = "es") -> str:
     return default
 
 
-def _tokens(text: str) -> set[str]:
-    return {w for w in _WORD.findall(text.lower()) if len(w) > 2}
-
-
-def _best_knowledge(text: str, knowledge: list[str]) -> tuple[str | None, float]:
-    q = _tokens(text)
-    best, best_score = None, 0.0
-    for item in knowledge:
-        overlap = len(q & _tokens(item))
-        if overlap > best_score:
-            best, best_score = item, float(overlap)
-    return best, best_score
-
-
 class MockAI(AIProvider):
     async def generate_reply(self, context: AIContext) -> GeneratedReply:
         language = detect_language(context.guest_text, context.default_language)
-        best, score = _best_knowledge(context.guest_text, context.knowledge)
 
-        if best:
-            confidence = min(0.6 + 0.1 * score, 0.95)
+        if context.knowledge:
+            best = context.knowledge[0]
+            confidence = min(0.6 + 0.4 * context.retrieval_score, 0.97)
             if language == "en":
                 text = f"Hi! Here's what you need: {best}"
             else:
                 text = f"¡Hola! Aquí tienes la información: {best}"
         else:
-            confidence = 0.35
+            confidence = 0.3
             if language == "en":
                 text = (
                     f"Thanks for reaching out to {context.property_name}. "

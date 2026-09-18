@@ -10,8 +10,10 @@ from app.adapters.ai.base import AIContext
 from app.adapters.ai.factory import get_ai_provider
 from app.adapters.ai.mock import detect_language
 from app.adapters.channel.factory import get_channel
+from app.adapters.embeddings.factory import get_embedding_provider
 from app.config import get_settings
-from app.models import AuditLog, Conversation, Draft, KnowledgeItem, Message, Property
+from app.models import AuditLog, Conversation, Draft, Message, Property
+from app.services.retrieval import retrieve
 
 
 @dataclass
@@ -46,11 +48,6 @@ async def handle_inbound(
     settings = get_settings()
     conversation = await _get_or_create_conversation(session, property.id, guest_ref)
 
-    knowledge_rows = await session.execute(
-        select(KnowledgeItem.content).where(KnowledgeItem.property_id == property.id)
-    )
-    knowledge = [row[0] for row in knowledge_rows.all()]
-
     inbound = Message(
         conversation_id=conversation.id,
         direction="in",
@@ -60,6 +57,13 @@ async def handle_inbound(
     session.add(inbound)
     await session.flush()
 
+    # RAG: recuperar los fragmentos más relevantes del piso para esta pregunta
+    embedder = get_embedding_provider()
+    query_embedding = embedder.embed([text])[0]
+    hits = await retrieve(session, property.id, query_embedding)
+    knowledge = [content for content, _ in hits]
+    top_score = hits[0][1] if hits else 0.0
+
     ai = get_ai_provider()
     reply = await ai.generate_reply(
         AIContext(
@@ -67,6 +71,7 @@ async def handle_inbound(
             property_name=property.name,
             knowledge=knowledge,
             default_language=property.default_language,
+            retrieval_score=top_score,
         )
     )
 

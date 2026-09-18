@@ -7,6 +7,7 @@ from sqlalchemy import DateTime, Float, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
+from app.db_types import Embedding
 
 
 def _utcnow() -> datetime:
@@ -54,6 +55,7 @@ class KnowledgeItem(Base):
     property_id: Mapped[int] = mapped_column(ForeignKey("properties.id"), index=True)
     category: Mapped[str] = mapped_column(String(64), default="general")
     content: Mapped[str] = mapped_column(Text)
+    embedding: Mapped[list[float] | None] = mapped_column(Embedding(), default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     property: Mapped[Property] = relationship(back_populates="knowledge")

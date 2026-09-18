@@ -106,6 +106,49 @@ async def test_language_detection_english(client):
     assert resp.json()["draft"]["language"] == "en"
 
 
+async def test_rag_grounds_answer_in_relevant_knowledge(client):
+    headers = await register_and_login(client, email="rag1@test.com")
+    prop_id = await _create_property(client, headers, name="Loft Sol")
+    await client.post(
+        f"/properties/{prop_id}/knowledge",
+        json={"category": "wifi", "content": "La contraseña del wifi es MALASANA-2024."},
+        headers=headers,
+    )
+    await client.post(
+        f"/properties/{prop_id}/knowledge",
+        json={"category": "check-in", "content": "El check-in es a partir de las 15:00 con caja de llaves."},
+        headers=headers,
+    )
+
+    resp = await client.post(
+        "/channels/sim/inbound",
+        json={"property_id": prop_id, "guest_ref": "g", "text": "¿Me pasas la contraseña del wifi?"},
+        headers=headers,
+    )
+    draft = resp.json()["draft"]
+    assert "MALASANA" in draft["text"]  # se ancló en el fragmento de wifi
+    assert "15:00" not in draft["text"]  # no mezcló el de check-in
+
+
+async def test_rag_ignores_irrelevant_question(client):
+    headers = await register_and_login(client, email="rag2@test.com")
+    prop_id = await _create_property(client, headers, name="Loft Luna")
+    await client.post(
+        f"/properties/{prop_id}/knowledge",
+        json={"category": "wifi", "content": "La contraseña del wifi es MALASANA-2024."},
+        headers=headers,
+    )
+
+    resp = await client.post(
+        "/channels/sim/inbound",
+        json={"property_id": prop_id, "guest_ref": "g", "text": "¿Hay algún parking o garaje por la zona?"},
+        headers=headers,
+    )
+    body = resp.json()
+    assert "MALASANA" not in body["draft"]["text"]  # no soltó el wifi sin venir a cuento
+    assert body["auto_sent"] is False
+
+
 async def test_ownership_isolation(client):
     owner_headers = await register_and_login(client, email="owner@test.com")
     prop_id = await _create_property(client, owner_headers)

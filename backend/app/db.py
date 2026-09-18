@@ -1,6 +1,7 @@
 """Capa de base de datos (SQLAlchemy 2 async)."""
 from collections.abc import AsyncGenerator
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
@@ -22,8 +23,13 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def init_db() -> None:
-    """Crea las tablas si no existen. Temporal en Fase 2; en Fase 3 pasa a Alembic."""
+    """Habilita pgvector (en Postgres) y crea las tablas si no existen.
+
+    Suficiente para el MVP; las migraciones (Alembic) quedan como mejora futura.
+    """
     from app import models  # noqa: F401  (registra los modelos en el metadata)
 
     async with engine.begin() as conn:
+        if engine.dialect.name == "postgresql":
+            await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         await conn.run_sync(Base.metadata.create_all)

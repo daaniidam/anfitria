@@ -4,9 +4,9 @@
 huéspedes por WhatsApp con respuestas ancladas a la información de cada piso;
 el anfitrión **aprueba, edita o envía** desde un panel, con registro de todo.
 
-> Estado: **Fase 2 — núcleo funcional + interfaz** (auth, pisos, conocimiento,
-> conversaciones, canal simulado, IA mock, borradores con aprobación/auto-envío y
-> auditoría, y un panel React/TS con bandeja de aprobación y simulador de chat).
+> Estado: **Fase 3 — RAG** (sobre el núcleo funcional + interfaz). El conocimiento
+> de cada piso se indexa con **embeddings en pgvector** y cada respuesta se ancla
+> en los fragmentos más relevantes: la IA ya no mezcla temas ni inventa datos.
 > Ver el roadmap abajo y las [capturas](#interfaz).
 
 ## API (Fase 2)
@@ -83,7 +83,7 @@ anfitria/
 ## Roadmap
 1. **Andamiaje** — repo, compose, `/health`, React shell, Postgres/Redis. ✅
 2. **Núcleo** — auth, pisos, conocimiento, conversaciones, canal `sim`, IA `mock`, aprobación + auditoría. ✅
-3. **RAG** — pgvector + embeddings; respuestas ancladas al piso.
+3. **RAG** — pgvector + embeddings; respuestas ancladas al piso. ✅
 4. **Claude real** — adaptador `anthropic`.
 5. **WhatsApp real** — Meta Cloud API (número de test) + firma HMAC del webhook.
 6. **Métricas + pulido** — panel de métricas, capturas, seed de demo.
