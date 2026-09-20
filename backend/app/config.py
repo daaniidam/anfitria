@@ -18,8 +18,9 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60 * 24
 
-    # Umbral de confianza para auto-envío (0-1); por encima, la IA puede enviar sola
-    auto_send_threshold: float = 0.85
+    # Umbral de confianza (0-1) para que la IA responda sola. Por debajo, escala
+    # al anfitrión (y el huésped recibe igual un mensaje de espera inmediato).
+    auto_answer_threshold: float = 0.55
 
     # IA: "mock" (sin clave, por defecto) | "anthropic" (Claude real)
     ai_provider: str = "mock"

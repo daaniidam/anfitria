@@ -12,7 +12,6 @@ export function GuestSimPage() {
   const [propertyId, setPropertyId] = useState<number | ''>('')
   const [conversationId, setConversationId] = useState<number | null>(null)
   const [text, setText] = useState('')
-  const [waiting, setWaiting] = useState(false)
 
   const guestRef = '+34 600 · demo'
 
@@ -33,7 +32,6 @@ export function GuestSimPage() {
     onSuccess: (result) => {
       setConversationId(result.conversation.id)
       setText('')
-      setWaiting(!result.auto_sent)
       void queryClient.invalidateQueries({ queryKey: ['conv-messages', result.conversation.id] })
     },
   })
@@ -56,7 +54,6 @@ export function GuestSimPage() {
   }
 
   const thread = messages.data ?? []
-  const lastIsGuest = thread.length > 0 && thread[thread.length - 1].direction === 'in'
 
   return (
     <div className="mx-auto flex max-w-md flex-col gap-4">
@@ -113,11 +110,6 @@ export function GuestSimPage() {
               />
             ))
           )}
-          {waiting && lastIsGuest ? (
-            <p className="self-end rounded-lg bg-brass-soft px-3 py-1.5 text-xs text-brass-ink">
-              ⏳ Esperando aprobación del anfitrión…
-            </p>
-          ) : null}
         </div>
 
         <form onSubmit={onSend} className="flex items-center gap-2 border-t border-line p-3">

@@ -14,18 +14,19 @@ export function InboxPage() {
     <div className="flex flex-col gap-5">
       <header>
         <p className="eyebrow text-brand-ink">Supervisión</p>
-        <h1 className="mt-1 font-display text-2xl font-bold text-ink">Bandeja de aprobación</h1>
+        <h1 className="mt-1 font-display text-2xl font-bold text-ink">Escaladas</h1>
         <p className="mt-1 text-sm text-muted">
-          Respuestas que la IA ha preparado y esperan tu visto bueno.
+          La IA responde sola cuando está segura. Aquí solo caen los casos que
+          prefirió consultarte — el huésped ya recibió un mensaje de espera.
         </p>
       </header>
 
       {isLoading ? (
         <p className="text-sm text-muted">Cargando…</p>
       ) : !data || data.length === 0 ? (
-        <EmptyState title="Bandeja al día">
-          No hay respuestas pendientes. Cuando un huésped escriba, la IA preparará
-          un borrador y aparecerá aquí para que lo revises.
+        <EmptyState title="Sin escaladas">
+          La IA está atendiendo a los huéspedes por su cuenta. Cuando dude sobre
+          algo, aparecerá aquí para que respondas tú.
         </EmptyState>
       ) : (
         <div className="flex flex-col gap-4">
@@ -66,13 +67,15 @@ function ApprovalCard({ item }: { item: InboxItem }) {
         <ChatBubble direction="in" text={item.inbound_text} tag="Huésped" />
 
         <div>
-          <span className="eyebrow mb-1.5 block text-muted">Borrador de la IA · edítalo si quieres</span>
+          <span className="eyebrow mb-1.5 block text-muted">
+            Respuesta sugerida por la IA · edítala si quieres
+          </span>
           <TextArea rows={3} value={text} onChange={(e) => setText(e.target.value)} />
         </div>
 
         <div className="flex items-center justify-between">
           <span className="text-xs text-muted">
-            {edited ? 'Editado por ti' : 'Sin cambios'}
+            {edited ? 'Editado por ti' : 'El huésped ya recibió un aviso de espera'}
           </span>
           <div className="flex gap-2">
             {edited ? (
@@ -85,7 +88,7 @@ function ApprovalCard({ item }: { item: InboxItem }) {
               disabled={approve.isPending || text.trim().length === 0}
               onClick={() => approve.mutate()}
             >
-              {approve.isPending ? 'Enviando…' : edited ? 'Enviar edición' : 'Aprobar y enviar'}
+              {approve.isPending ? 'Enviando…' : 'Responder al huésped'}
             </Button>
           </div>
         </div>

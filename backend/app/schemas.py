@@ -31,6 +31,7 @@ class PropertyCreate(BaseModel):
     name: str
     address: str | None = None
     default_language: str = "es"
+    auto_answer: bool = True
 
 
 class PropertyOut(BaseModel):
@@ -39,6 +40,7 @@ class PropertyOut(BaseModel):
     name: str
     address: str | None
     default_language: str
+    auto_answer: bool
 
 
 class KnowledgeCreate(BaseModel):
@@ -91,7 +93,7 @@ class InboundResult(BaseModel):
     conversation: ConversationOut
     inbound: MessageOut
     draft: DraftOut
-    auto_sent: bool
+    answered: bool  # True: la IA respondió sola; False: se escaló al anfitrión
 
 
 class ApproveRequest(BaseModel):

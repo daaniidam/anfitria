@@ -19,8 +19,12 @@ export const AuthApi = {
 
 export const PropertiesApi = {
   list: () => api<Property[]>('/properties'),
-  create: (body: { name: string; address?: string; default_language: string }) =>
-    api<Property>('/properties', { method: 'POST', body }),
+  create: (body: {
+    name: string
+    address?: string
+    default_language: string
+    auto_answer?: boolean
+  }) => api<Property>('/properties', { method: 'POST', body }),
   knowledge: (propertyId: number) =>
     api<KnowledgeItem[]>(`/properties/${propertyId}/knowledge`),
   addKnowledge: (propertyId: number, body: { category: string; content: string }) =>

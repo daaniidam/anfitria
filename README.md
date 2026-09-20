@@ -7,33 +7,35 @@ el anfitrión **aprueba, edita o envía** desde un panel, con registro de todo.
 > Estado: **Fase 3 — RAG** (sobre el núcleo funcional + interfaz). El conocimiento
 > de cada piso se indexa con **embeddings en pgvector** y cada respuesta se ancla
 > en los fragmentos más relevantes: la IA ya no mezcla temas ni inventa datos.
+> **La IA responde sola** al huésped cuando tiene confianza; si no, le manda un
+> aviso de espera y **escala** al anfitrión (configurable por piso).
 > Ver el roadmap abajo y las [capturas](#interfaz).
 
 ## API (Fase 2)
 - `POST /auth/register` · `POST /auth/login` · `GET /auth/me`
 - `POST /properties` · `GET /properties` · `POST/GET /properties/{id}/knowledge`
-- `POST /channels/sim/inbound` — simula un mensaje de huésped → genera **borrador** (o auto-envía si la confianza ≥ umbral)
+- `POST /channels/sim/inbound` — simula un mensaje de huésped → la IA **responde sola** si tiene confianza; si no, envía aviso de espera y **escala**
 - `GET /conversations` · `GET /conversations/{id}/messages`
-- `GET /drafts?status=pending` — cola de aprobación · `POST /drafts/{id}/approve` (con `edited_text` opcional)
+- `GET /inbox` — escaladas pendientes (enriquecidas) · `POST /drafts/{id}/approve` — responder al huésped (con `edited_text` opcional)
 
 Explora todo en `http://localhost:8000/docs`.
 
 ## Interfaz
 
-Panel del anfitrión (React + TypeScript + Tailwind) con la **bandeja de
-aprobación** como pantalla principal y un **simulador de chat** de huésped.
+Panel del anfitrión (React + TypeScript + Tailwind) con un **simulador de chat**
+de huésped y una pantalla de **escaladas** para supervisión.
 
-**Bandeja de aprobación** — el anfitrión revisa la respuesta de la IA; el
-medidor de confianza (en latón) indica cuán segura está y si es auto-enviable:
-
-![Bandeja de aprobación](docs/img/bandeja-aprobacion.jpg)
-
-**Simulador de huésped** — la IA responde al instante con la información del
-piso cuando está segura:
+**Simulador de huésped** — la IA responde **al instante**; si no sabe algo,
+manda un aviso de espera y lo escala (el huésped nunca se queda sin respuesta):
 
 ![Simulador de huésped](docs/img/simulador.jpg)
 
-| Acceso | Pisos y conocimiento |
+**Escaladas** — solo lo que la IA prefirió consultar; el medidor de confianza
+(en latón) indica cuán segura estaba. El anfitrión edita y responde:
+
+![Escaladas](docs/img/escaladas.jpg)
+
+| Acceso | Pisos y conocimiento (con modo auto/manual por piso) |
 |:---:|:---:|
 | ![Login](docs/img/login.jpg) | ![Pisos](docs/img/pisos-conocimiento.jpg) |
 

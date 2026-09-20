@@ -9,6 +9,7 @@ export interface Property {
   name: string
   address: string | null
   default_language: string
+  auto_answer: boolean
 }
 
 export interface KnowledgeItem {
@@ -46,7 +47,7 @@ export interface InboundResult {
   conversation: Conversation
   inbound: Message
   draft: Draft
-  auto_sent: boolean
+  answered: boolean
 }
 
 export interface InboxItem {

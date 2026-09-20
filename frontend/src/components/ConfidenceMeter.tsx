@@ -1,5 +1,5 @@
 const SEGMENTS = 10
-const AUTO_THRESHOLD = 0.85
+const AUTO_THRESHOLD = 0.55
 
 /**
  * Medidor de confianza de la IA — el elemento firma de AnfitrIA.
@@ -23,7 +23,7 @@ export function ConfidenceMeter({ value }: { value: number }) {
       </div>
       <span className="font-mono text-xs font-medium text-ink">{pct}%</span>
       <span className="eyebrow text-muted">confianza</span>
-      {auto ? <span className="eyebrow text-brass-ink">· auto-enviable</span> : null}
+      {auto ? <span className="eyebrow text-brass-ink">· responde sola</span> : null}
     </div>
   )
 }

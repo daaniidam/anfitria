@@ -49,7 +49,7 @@ async def sim_inbound(
         conversation=ConversationOut.model_validate(outcome.conversation),
         inbound=MessageOut.model_validate(outcome.inbound),
         draft=DraftOut.model_validate(outcome.draft),
-        auto_sent=outcome.auto_sent,
+        answered=outcome.answered,
     )
 
 

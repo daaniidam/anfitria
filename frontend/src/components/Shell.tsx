@@ -4,7 +4,7 @@ import { NavLink } from 'react-router-dom'
 import { useAuth } from '../auth'
 
 const NAV = [
-  { to: '/', label: 'Bandeja', end: true },
+  { to: '/', label: 'Escaladas', end: true },
   { to: '/pisos', label: 'Pisos', end: false },
   { to: '/simulador', label: 'Simulador de huésped', end: false },
 ]

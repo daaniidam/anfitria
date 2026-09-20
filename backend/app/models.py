@@ -34,6 +34,8 @@ class Property(Base):
     name: Mapped[str] = mapped_column(String(255))
     address: Mapped[str | None] = mapped_column(String(500), default=None)
     default_language: Mapped[str] = mapped_column(String(8), default="es")
+    # Si True, la IA responde sola cuando tiene confianza; si no, escala al anfitrión.
+    auto_answer: Mapped[bool] = mapped_column(default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     owner: Mapped[User] = relationship(back_populates="properties")

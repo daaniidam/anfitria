@@ -16,12 +16,19 @@ from app.models import AuditLog, Conversation, Draft, Message, Property
 from app.services.retrieval import retrieve
 
 
+# Mensaje de espera que recibe el huésped al instante cuando se escala al anfitrión.
+HOLDING = {
+    "es": "¡Hola! Lo confirmo con el anfitrión y te respondo enseguida. 🙌",
+    "en": "Hi! Let me check this with the host and get right back to you. 🙌",
+}
+
+
 @dataclass
 class InboundOutcome:
     conversation: Conversation
     inbound: Message
     draft: Draft
-    auto_sent: bool
+    answered: bool
 
 
 async def _get_or_create_conversation(
@@ -94,9 +101,11 @@ async def handle_inbound(
     )
     await session.flush()
 
-    auto_sent = False
-    if reply.confidence >= settings.auto_send_threshold:
-        channel = get_channel()
+    channel = get_channel()
+    answered = property.auto_answer and reply.confidence >= settings.auto_answer_threshold
+
+    if answered:
+        # La IA responde sola al huésped.
         await channel.send(conversation.guest_ref, draft.text)
         session.add(
             Message(
@@ -108,11 +117,26 @@ async def handle_inbound(
         )
         draft.status = "sent"
         session.add(
-            AuditLog(actor="ai", action="auto_sent", conversation_id=conversation.id)
+            AuditLog(actor="ai", action="auto_answered", conversation_id=conversation.id)
         )
-        auto_sent = True
+    else:
+        # Escalada: el huésped recibe un mensaje de espera y el anfitrión responde luego.
+        holding = HOLDING["en"] if reply.language == "en" else HOLDING["es"]
+        await channel.send(conversation.guest_ref, holding)
+        session.add(
+            Message(
+                conversation_id=conversation.id,
+                direction="out",
+                text=holding,
+                language=reply.language,
+            )
+        )
+        # El borrador queda "pending": es la escalada para el anfitrión.
+        session.add(
+            AuditLog(actor="ai", action="escalated", conversation_id=conversation.id)
+        )
 
     await session.commit()
     return InboundOutcome(
-        conversation=conversation, inbound=inbound, draft=draft, auto_sent=auto_sent
+        conversation=conversation, inbound=inbound, draft=draft, answered=answered
     )

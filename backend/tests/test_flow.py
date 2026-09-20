@@ -27,7 +27,7 @@ async def test_manual_approval_flow(client):
     )
     assert resp.status_code == 201, resp.text
     body = resp.json()
-    assert body["auto_sent"] is False
+    assert body["answered"] is False  # sin conocimiento -> se escala
     draft_id = body["draft"]["id"]
     conversation_id = body["conversation"]["id"]
 
@@ -52,10 +52,10 @@ async def test_manual_approval_flow(client):
     assert resp.status_code == 201, resp.text
     assert resp.json()["direction"] == "out"
 
-    # la conversación tiene mensaje entrante + saliente
+    # la conversación tiene: entrada + mensaje de espera + respuesta del anfitrión
     resp = await client.get(f"/conversations/{conversation_id}/messages", headers=headers)
     directions = [m["direction"] for m in resp.json()]
-    assert directions == ["in", "out"]
+    assert directions == ["in", "out", "out"]
 
     # ya no está pendiente
     resp = await client.get("/drafts?status=pending", headers=headers)
@@ -84,7 +84,7 @@ async def test_auto_send_with_matching_knowledge(client):
     )
     assert resp.status_code == 201, resp.text
     body = resp.json()
-    assert body["auto_sent"] is True
+    assert body["answered"] is True  # con conocimiento relevante -> responde sola
     assert body["draft"]["status"] == "sent"
 
     conversation_id = body["conversation"]["id"]
@@ -146,7 +146,32 @@ async def test_rag_ignores_irrelevant_question(client):
     )
     body = resp.json()
     assert "MALASANA" not in body["draft"]["text"]  # no soltó el wifi sin venir a cuento
-    assert body["auto_sent"] is False
+    assert body["answered"] is False  # no sabía -> escala en vez de inventar
+
+
+async def test_property_with_auto_answer_off_always_escalates(client):
+    headers = await register_and_login(client, email="manual@test.com")
+    resp = await client.post(
+        "/properties",
+        json={"name": "Casa Manual", "default_language": "es", "auto_answer": False},
+        headers=headers,
+    )
+    assert resp.status_code == 201
+    assert resp.json()["auto_answer"] is False
+    prop_id = resp.json()["id"]
+    await client.post(
+        f"/properties/{prop_id}/knowledge",
+        json={"category": "wifi", "content": "La contraseña del wifi es MALASANA-2024."},
+        headers=headers,
+    )
+
+    resp = await client.post(
+        "/channels/sim/inbound",
+        json={"property_id": prop_id, "guest_ref": "g", "text": "¿Cuál es la contraseña del wifi?"},
+        headers=headers,
+    )
+    # aunque tenga la respuesta, este piso escala siempre
+    assert resp.json()["answered"] is False
 
 
 async def test_ownership_isolation(client):

@@ -13,11 +13,12 @@ export function PropertiesPage() {
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [name, setName] = useState('')
   const [lang, setLang] = useState('es')
+  const [autoAnswer, setAutoAnswer] = useState(true)
 
   const selected = properties?.find((p) => p.id === selectedId) ?? null
 
   const create = useMutation({
-    mutationFn: () => PropertiesApi.create({ name, default_language: lang }),
+    mutationFn: () => PropertiesApi.create({ name, default_language: lang, auto_answer: autoAnswer }),
     onSuccess: (property) => {
       setName('')
       setSelectedId(property.id)
@@ -57,6 +58,20 @@ export function PropertiesPage() {
                 <option value="en">Inglés</option>
               </select>
             </label>
+            <label className="flex items-start gap-2.5 rounded-lg bg-sunk/60 px-3 py-2.5">
+              <input
+                type="checkbox"
+                checked={autoAnswer}
+                onChange={(e) => setAutoAnswer(e.target.checked)}
+                className="mt-0.5 h-4 w-4 accent-brand"
+              />
+              <span className="text-sm text-ink">
+                Responder automáticamente
+                <span className="mt-0.5 block text-xs text-muted">
+                  La IA contesta sola cuando está segura; si no, te lo escala.
+                </span>
+              </span>
+            </label>
             <Button variant="brand" type="submit" disabled={create.isPending}>
               {create.isPending ? 'Creando…' : 'Añadir piso'}
             </Button>
@@ -76,7 +91,12 @@ export function PropertiesPage() {
               }
             >
               <span className="font-medium">{property.name}</span>
-              <Tag tone="muted">{property.default_language.toUpperCase()}</Tag>
+              <span className="flex items-center gap-1.5">
+                <Tag tone={property.auto_answer ? 'brand' : 'muted'}>
+                  {property.auto_answer ? 'auto' : 'manual'}
+                </Tag>
+                <Tag tone="muted">{property.default_language.toUpperCase()}</Tag>
+              </span>
             </button>
           ))}
         </div>

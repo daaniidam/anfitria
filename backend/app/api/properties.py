@@ -30,6 +30,7 @@ async def create_property(
         name=data.name,
         address=data.address,
         default_language=data.default_language,
+        auto_answer=data.auto_answer,
     )
     session.add(prop)
     await session.commit()
