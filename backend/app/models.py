@@ -36,6 +36,8 @@ class Property(Base):
     default_language: Mapped[str] = mapped_column(String(8), default="es")
     # Si True, la IA responde sola cuando tiene confianza; si no, escala al anfitrión.
     auto_answer: Mapped[bool] = mapped_column(default=True)
+    # Número de WhatsApp (phone_number_id de Meta) asignado a este piso, para enrutar la entrada.
+    whatsapp_phone_number_id: Mapped[str | None] = mapped_column(String(64), default=None, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     owner: Mapped[User] = relationship(back_populates="properties")

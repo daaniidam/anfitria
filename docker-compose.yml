@@ -31,6 +31,13 @@ services:
       AI_PROVIDER: ${AI_PROVIDER:-mock}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-opus-5}
+      # Canal: sim por defecto. Para WhatsApp real: CHANNEL_PROVIDER=whatsapp_cloud
+      # y las credenciales de Meta (ver docs/WHATSAPP.md).
+      CHANNEL_PROVIDER: ${CHANNEL_PROVIDER:-sim}
+      WHATSAPP_VERIFY_TOKEN: ${WHATSAPP_VERIFY_TOKEN:-}
+      WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN:-}
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
+      WHATSAPP_APP_SECRET: ${WHATSAPP_APP_SECRET:-}
     ports:
       - "8000:8000"
     volumes:

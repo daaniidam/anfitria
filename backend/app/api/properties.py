@@ -31,6 +31,7 @@ async def create_property(
         address=data.address,
         default_language=data.default_language,
         auto_answer=data.auto_answer,
+        whatsapp_phone_number_id=data.whatsapp_phone_number_id,
     )
     session.add(prop)
     await session.commit()

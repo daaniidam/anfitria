@@ -5,8 +5,10 @@ from app.config import get_settings
 
 
 def get_channel() -> Channel:
-    provider = get_settings().channel_provider
-    if provider == "whatsapp_cloud":
-        # En Fase 5 se implementa WhatsAppCloudChannel (Meta). Por ahora, sim.
-        return SimChannel()
+    settings = get_settings()
+    if settings.channel_provider == "whatsapp_cloud" and settings.whatsapp_access_token:
+        from app.adapters.channel.whatsapp import WhatsAppCloudChannel
+
+        return WhatsAppCloudChannel()
+    # Por defecto (o sin credenciales): canal simulado.
     return SimChannel()

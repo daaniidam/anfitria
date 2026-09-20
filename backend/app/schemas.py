@@ -32,6 +32,7 @@ class PropertyCreate(BaseModel):
     address: str | None = None
     default_language: str = "es"
     auto_answer: bool = True
+    whatsapp_phone_number_id: str | None = None
 
 
 class PropertyOut(BaseModel):
@@ -41,6 +42,7 @@ class PropertyOut(BaseModel):
     address: str | None
     default_language: str
     auto_answer: bool
+    whatsapp_phone_number_id: str | None
 
 
 class KnowledgeCreate(BaseModel):

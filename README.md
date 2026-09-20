@@ -88,7 +88,8 @@ anfitria/
 3. **RAG** — pgvector + embeddings; respuestas ancladas al piso. ✅
 4. **Claude real** — adaptador `anthropic` (Claude razona sobre la ficha del piso). ✅
    Actívalo con `AI_PROVIDER=anthropic` + `ANTHROPIC_API_KEY` en un `.env`.
-5. **WhatsApp real** — Meta Cloud API (número de test) + firma HMAC del webhook.
+5. **WhatsApp real** — canal Meta Cloud API (envío + webhook con firma HMAC). ✅
+   Cómo conectarlo: [`docs/WHATSAPP.md`](docs/WHATSAPP.md).
 6. **Métricas + pulido** — panel de métricas, capturas, seed de demo.
 
 ## Continuar en Cursor
