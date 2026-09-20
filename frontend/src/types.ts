@@ -58,3 +58,15 @@ export interface InboxItem {
   property_id: number
   property_name: string
 }
+
+export interface Metrics {
+  properties: number
+  conversations: number
+  messages_in: number
+  messages_out: number
+  auto_answered: number
+  escalated: number
+  pending: number
+  auto_rate: number
+  minutes_saved: number
+}

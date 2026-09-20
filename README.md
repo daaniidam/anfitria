@@ -4,12 +4,11 @@
 huéspedes por WhatsApp con respuestas ancladas a la información de cada piso;
 el anfitrión **aprueba, edita o envía** desde un panel, con registro de todo.
 
-> Estado: **Fase 3 — RAG** (sobre el núcleo funcional + interfaz). El conocimiento
-> de cada piso se indexa con **embeddings en pgvector** y cada respuesta se ancla
-> en los fragmentos más relevantes: la IA ya no mezcla temas ni inventa datos.
-> **La IA responde sola** al huésped cuando tiene confianza; si no, le manda un
-> aviso de espera y **escala** al anfitrión (configurable por piso).
-> Ver el roadmap abajo y las [capturas](#interfaz).
+> Estado: **producto completo (fases 1-6)**. La IA responde sola por WhatsApp
+> anclándose en la ficha del piso (RAG + pgvector, o Claude); cuando duda, avisa
+> al huésped y **escala** al anfitrión; y hay panel de **métricas** de rendimiento.
+> Todo arranca sin claves ni coste (modos `mock`/`sim`). Ver el roadmap abajo y
+> las [capturas](#interfaz).
 
 ## API (Fase 2)
 - `POST /auth/register` · `POST /auth/login` · `GET /auth/me`
@@ -34,6 +33,10 @@ manda un aviso de espera y lo escala (el huésped nunca se queda sin respuesta):
 (en latón) indica cuán segura estaba. El anfitrión edita y responde:
 
 ![Escaladas](docs/img/escaladas.jpg)
+
+**Métricas** — cuánto resuelve la IA sola, escaladas y tiempo ahorrado:
+
+![Métricas](docs/img/metricas.jpg)
 
 | Acceso | Pisos y conocimiento (con modo auto/manual por piso) |
 |:---:|:---:|
@@ -90,7 +93,7 @@ anfitria/
    Actívalo con `AI_PROVIDER=anthropic` + `ANTHROPIC_API_KEY` en un `.env`.
 5. **WhatsApp real** — canal Meta Cloud API (envío + webhook con firma HMAC). ✅
    Cómo conectarlo: [`docs/WHATSAPP.md`](docs/WHATSAPP.md).
-6. **Métricas + pulido** — panel de métricas, capturas, seed de demo.
+6. **Métricas + pulido** — panel de métricas del anfitrión (auto-resueltas, escaladas, tiempo ahorrado). ✅
 
 ## Continuar en Cursor
 Este repo trae **reglas de proyecto en `.cursor/rules/`** para que el agente de

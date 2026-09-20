@@ -5,6 +5,7 @@ import { Shell } from './components/Shell'
 import { GuestSimPage } from './pages/GuestSimPage'
 import { InboxPage } from './pages/InboxPage'
 import { LoginPage } from './pages/LoginPage'
+import { MetricsPage } from './pages/MetricsPage'
 import { PropertiesPage } from './pages/PropertiesPage'
 
 export default function App() {
@@ -30,6 +31,7 @@ export default function App() {
     <Shell>
       <Routes>
         <Route path="/" element={<InboxPage />} />
+        <Route path="/metricas" element={<MetricsPage />} />
         <Route path="/pisos" element={<PropertiesPage />} />
         <Route path="/simulador" element={<GuestSimPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -110,3 +110,15 @@ class InboxItem(BaseModel):
     conversation_id: int
     property_id: int
     property_name: str
+
+
+class MetricsOut(BaseModel):
+    properties: int
+    conversations: int
+    messages_in: int
+    messages_out: int
+    auto_answered: int
+    escalated: int
+    pending: int
+    auto_rate: float  # 0..1
+    minutes_saved: int

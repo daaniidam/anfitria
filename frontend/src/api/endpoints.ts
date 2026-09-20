@@ -4,10 +4,15 @@ import type {
   InboxItem,
   KnowledgeItem,
   Message,
+  Metrics,
   Property,
   User,
 } from '../types'
 import { api } from './client'
+
+export const MetricsApi = {
+  get: () => api<Metrics>('/metrics'),
+}
 
 export const AuthApi = {
   register: (body: { email: string; name: string; password: string }) =>
