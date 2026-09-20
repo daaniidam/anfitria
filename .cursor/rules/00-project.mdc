@@ -36,13 +36,14 @@ aprobación del anfitrión -> envío por el canal -> **AuditLog**.
 Diseña siempre con **adaptadores** (IA y canal) tras una interfaz, para poder
 cambiar de `mock`/`sim` a real sin tocar la lógica de negocio.
 
-## Roadmap por fases (estado actual: FASE 3 ✅ RAG hecha; siguiente: Claude real)
+## Roadmap por fases (estado actual: FASE 4 ✅ Claude real; siguiente: WhatsApp real)
 1. **Andamiaje**: repo, docker-compose, FastAPI `/health`, React shell, Postgres/Redis. ✅
 2. **Núcleo**: auth anfitrión, pisos, conocimiento, conversaciones, canal `sim`,
    IA `mock`, flujo de aprobación + auditoría. Demo end-to-end sin claves. ✅
 3. **RAG**: pgvector + embeddings (adaptador `mock`), recuperación por similitud
    en `app/services/retrieval.py`; respuestas ancladas al piso. ✅
-4. **Claude real**: adaptador `anthropic` (usar el skill/guía de Claude API).
+4. **Claude real**: adaptador `anthropic` (`app/adapters/ai/anthropic_ai.py`, SDK
+   AsyncAnthropic, salida JSON can_answer/reply/language; degrada a escalada si falla). ✅
 5. **WhatsApp real**: Meta Cloud API (número de test) + verificación de webhook + firma HMAC.
 6. **Métricas + pulido**: panel de métricas, README con capturas, seed de demo.
 

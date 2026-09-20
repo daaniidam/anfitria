@@ -12,7 +12,7 @@ from app.adapters.ai.mock import detect_language
 from app.adapters.channel.factory import get_channel
 from app.adapters.embeddings.factory import get_embedding_provider
 from app.config import get_settings
-from app.models import AuditLog, Conversation, Draft, Message, Property
+from app.models import AuditLog, Conversation, Draft, KnowledgeItem, Message, Property
 from app.services.retrieval import retrieve
 
 
@@ -64,12 +64,19 @@ async def handle_inbound(
     session.add(inbound)
     await session.flush()
 
-    # RAG: recuperar los fragmentos más relevantes del piso para esta pregunta
+    # RAG: recuperar los fragmentos más relevantes (para el mock y como señal de confianza)
     embedder = get_embedding_provider()
     query_embedding = embedder.embed([text])[0]
     hits = await retrieve(session, property.id, query_embedding)
     knowledge = [content for content, _ in hits]
     top_score = hits[0][1] if hits else 0.0
+
+    # Todo el conocimiento del piso (los modelos que razonan semánticamente, como Claude,
+    # eligen ellos mismos lo relevante — entienden "¿a qué hora entro?" = check-in).
+    all_rows = await session.execute(
+        select(KnowledgeItem.content).where(KnowledgeItem.property_id == property.id)
+    )
+    all_knowledge = [row[0] for row in all_rows.all()]
 
     ai = get_ai_provider()
     reply = await ai.generate_reply(
@@ -77,6 +84,7 @@ async def handle_inbound(
             guest_text=text,
             property_name=property.name,
             knowledge=knowledge,
+            all_knowledge=all_knowledge,
             default_language=property.default_language,
             retrieval_score=top_score,
         )

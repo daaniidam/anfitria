@@ -5,8 +5,10 @@ from app.config import get_settings
 
 
 def get_ai_provider() -> AIProvider:
-    provider = get_settings().ai_provider
-    if provider == "anthropic":
-        # En Fase 4 se implementa AnthropicAI (Claude). Por ahora, mock como red de seguridad.
-        return MockAI()
+    settings = get_settings()
+    if settings.ai_provider == "anthropic" and settings.anthropic_api_key:
+        from app.adapters.ai.anthropic_ai import AnthropicAI
+
+        return AnthropicAI()
+    # Por defecto (o si falta la clave): mock determinista, sin coste.
     return MockAI()

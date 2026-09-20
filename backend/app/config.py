@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     # IA: "mock" (sin clave, por defecto) | "anthropic" (Claude real)
     ai_provider: str = "mock"
     anthropic_api_key: str | None = None
-    anthropic_model: str = "claude-sonnet-5"
+    anthropic_model: str = "claude-opus-5"
 
     # Canal: "sim" (WhatsApp simulado) | "whatsapp_cloud" (Meta Cloud API)
     channel_provider: str = "sim"

@@ -86,7 +86,8 @@ anfitria/
 1. **Andamiaje** — repo, compose, `/health`, React shell, Postgres/Redis. ✅
 2. **Núcleo** — auth, pisos, conocimiento, conversaciones, canal `sim`, IA `mock`, aprobación + auditoría. ✅
 3. **RAG** — pgvector + embeddings; respuestas ancladas al piso. ✅
-4. **Claude real** — adaptador `anthropic`.
+4. **Claude real** — adaptador `anthropic` (Claude razona sobre la ficha del piso). ✅
+   Actívalo con `AI_PROVIDER=anthropic` + `ANTHROPIC_API_KEY` en un `.env`.
 5. **WhatsApp real** — Meta Cloud API (número de test) + firma HMAC del webhook.
 6. **Métricas + pulido** — panel de métricas, capturas, seed de demo.
 

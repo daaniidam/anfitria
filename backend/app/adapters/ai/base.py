@@ -9,7 +9,8 @@ from dataclasses import dataclass, field
 class AIContext:
     guest_text: str
     property_name: str
-    knowledge: list[str] = field(default_factory=list)
+    knowledge: list[str] = field(default_factory=list)  # recuperado por RAG (lo usa el mock)
+    all_knowledge: list[str] = field(default_factory=list)  # todo el del piso (lo usa Claude)
     default_language: str = "es"
     retrieval_score: float = 0.0
 
