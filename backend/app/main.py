@@ -14,6 +14,7 @@ from app.api import (
     metrics,
     notifications,
     properties,
+    reservations,
     whatsapp,
 )
 from app.config import get_settings
@@ -99,6 +100,7 @@ def create_app() -> FastAPI:
     app.include_router(auth.router)
     app.include_router(buildings.router)
     app.include_router(properties.router)
+    app.include_router(reservations.router)
     app.include_router(conversations.router)
     app.include_router(whatsapp.router)
     app.include_router(metrics.router)

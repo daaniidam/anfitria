@@ -53,6 +53,12 @@ parking, zonas comunes) con todos ellos de una vez:
 
 ![Edificios](docs/img/edificios.jpg)
 
+**Reservas** — con la reserva del huésped, la IA sabe la **fase de la estancia**
+(pre-llegada / alojado ahora / salida) y responde con fechas concretas: *«tu
+check-in es mañana a las 15:00»* en vez de en genérico. Multi-idioma **ES/EN/FR/DE/IT**.
+
+![Reservas](docs/img/reservas.jpg)
+
 **Importar la ficha (CSV/PDF)** — un gestor con muchos pisos no teclea a mano:
 sube un CSV (categoría, contenido) o el PDF del manual del piso y se trocea e
 indexa automáticamente.

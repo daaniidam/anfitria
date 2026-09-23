@@ -1,5 +1,5 @@
 """Esquemas Pydantic (entrada/salida de la API)."""
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
@@ -76,6 +76,35 @@ class KnowledgeOut(BaseModel):
 
 class KnowledgeImportOut(BaseModel):
     imported: int  # nº de fragmentos añadidos a la ficha
+
+
+class ReservationCreate(BaseModel):
+    guest_name: str = Field(min_length=1, max_length=160)
+    guest_ref: str = Field(min_length=1, max_length=64)
+    check_in: date
+    check_out: date
+    code: str | None = Field(default=None, max_length=32)
+
+
+class ReservationUpdate(BaseModel):
+    guest_name: str | None = Field(default=None, min_length=1, max_length=160)
+    guest_ref: str | None = Field(default=None, min_length=1, max_length=64)
+    check_in: date | None = None
+    check_out: date | None = None
+    status: str | None = Field(default=None, max_length=16)
+    code: str | None = Field(default=None, max_length=32)
+
+
+class ReservationOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    property_id: int
+    guest_name: str
+    guest_ref: str
+    check_in: date
+    check_out: date
+    status: str
+    code: str | None
 
 
 class InboundMessage(BaseModel):

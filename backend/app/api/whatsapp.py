@@ -32,6 +32,12 @@ _NON_TEXT_REPLY = {
     "¿Puedes contarme tu duda por escrito?",
     "en": "Thanks for reaching out! For now I can only read text messages. "
     "Could you type your question?",
+    "fr": "Merci de votre message ! Pour l'instant je ne peux lire que du texte. "
+    "Pouvez-vous écrire votre question ?",
+    "de": "Danke für deine Nachricht! Momentan kann ich nur Text lesen. "
+    "Kannst du deine Frage schreiben?",
+    "it": "Grazie per il messaggio! Per ora posso leggere solo testo. "
+    "Puoi scrivere la tua domanda?",
 }
 
 router = APIRouter(prefix="/channels/whatsapp", tags=["whatsapp"])

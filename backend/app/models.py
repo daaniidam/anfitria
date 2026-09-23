@@ -1,9 +1,9 @@
 """Modelos de dominio de AnfitrIA."""
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, String, Text
+from sqlalchemy import Date, DateTime, Float, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -71,6 +71,9 @@ class Property(Base):
         back_populates="property", cascade="all, delete-orphan"
     )
     conversations: Mapped[list[Conversation]] = relationship(back_populates="property")
+    reservations: Mapped[list[Reservation]] = relationship(
+        back_populates="property", cascade="all, delete-orphan"
+    )
 
 
 class KnowledgeItem(Base):
@@ -96,6 +99,26 @@ class KnowledgeItem(Base):
 
     property: Mapped[Property | None] = relationship(back_populates="knowledge")
     building: Mapped[Building | None] = relationship(back_populates="knowledge")
+
+
+class Reservation(Base):
+    """Reserva de un huésped en un piso. Da a la IA el contexto de la estancia
+    (fase pre-llegada / durante / salida) para responder con datos concretos."""
+
+    __tablename__ = "reservations"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    property_id: Mapped[int] = mapped_column(ForeignKey("properties.id"), index=True)
+    guest_name: Mapped[str] = mapped_column(String(160))
+    guest_ref: Mapped[str] = mapped_column(String(64), index=True)  # teléfono del huésped
+    check_in: Mapped[date] = mapped_column(Date)
+    check_out: Mapped[date] = mapped_column(Date)
+    # upcoming | active | past | cancelled
+    status: Mapped[str] = mapped_column(String(16), default="upcoming")
+    code: Mapped[str | None] = mapped_column(String(32), default=None)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+    property: Mapped[Property] = relationship(back_populates="reservations")
 
 
 class Conversation(Base):

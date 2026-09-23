@@ -9,6 +9,7 @@ const NAV = [
   { to: '/', label: 'Escaladas', end: true },
   { to: '/metricas', label: 'Métricas', end: false },
   { to: '/pisos', label: 'Pisos', end: false },
+  { to: '/reservas', label: 'Reservas', end: false },
   { to: '/edificios', label: 'Edificios', end: false },
   { to: '/auditoria', label: 'Auditoría', end: false },
   { to: '/simulador', label: 'Simulador de huésped', end: false },

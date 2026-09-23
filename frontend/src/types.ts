@@ -84,6 +84,17 @@ export interface Metrics {
   daily: MetricsPoint[]
 }
 
+export interface Reservation {
+  id: number
+  property_id: number
+  guest_name: string
+  guest_ref: string
+  check_in: string
+  check_out: string
+  status: string
+  code: string | null
+}
+
 export interface Notification {
   id: number
   kind: string

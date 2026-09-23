@@ -13,6 +13,7 @@ class AIContext:
     all_knowledge: list[str] = field(default_factory=list)  # todo el del piso (lo usa Claude)
     default_language: str = "es"
     retrieval_score: float = 0.0
+    stay_context: str | None = None  # contexto de la reserva (fase de la estancia)
 
 
 @dataclass

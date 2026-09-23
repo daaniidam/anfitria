@@ -9,6 +9,7 @@ import type {
   Metrics,
   Notification,
   Property,
+  Reservation,
   User,
 } from '../types'
 import { api, apiUpload } from './client'
@@ -77,6 +78,25 @@ export const PropertiesApi = {
     }),
   removeKnowledge: (propertyId: number, itemId: number) =>
     api<void>(`/properties/${propertyId}/knowledge/${itemId}`, { method: 'DELETE' }),
+}
+
+export const ReservationsApi = {
+  list: () => api<Reservation[]>('/reservations'),
+  byProperty: (propertyId: number) =>
+    api<Reservation[]>(`/properties/${propertyId}/reservations`),
+  create: (
+    propertyId: number,
+    body: {
+      guest_name: string
+      guest_ref: string
+      check_in: string
+      check_out: string
+      code?: string | null
+    },
+  ) => api<Reservation>(`/properties/${propertyId}/reservations`, { method: 'POST', body }),
+  update: (id: number, body: Partial<{ status: string; check_in: string; check_out: string }>) =>
+    api<Reservation>(`/reservations/${id}`, { method: 'PATCH', body }),
+  remove: (id: number) => api<void>(`/reservations/${id}`, { method: 'DELETE' }),
 }
 
 export const InboxApi = {

@@ -21,12 +21,16 @@ from app.models import (
     Notification,
     Property,
 )
+from app.services.reservations import build_stay_context, find_reservation
 from app.services.retrieval import retrieve, scope_clause
 
 # Mensaje de espera que recibe el huésped al instante cuando se escala al anfitrión.
 HOLDING = {
     "es": "¡Hola! Lo confirmo con el anfitrión y te respondo enseguida. 🙌",
     "en": "Hi! Let me check this with the host and get right back to you. 🙌",
+    "fr": "Bonjour ! Je vérifie avec l'hôte et je vous réponds tout de suite. 🙌",
+    "de": "Hallo! Ich kläre das mit dem Gastgeber und melde mich gleich. 🙌",
+    "it": "Ciao! Lo verifico con l'host e ti rispondo subito. 🙌",
 }
 
 
@@ -111,6 +115,10 @@ async def handle_inbound(
     )
     all_knowledge = [row[0] for row in all_rows.all()]
 
+    # Contexto de la reserva: en qué fase de la estancia está el huésped.
+    reservation = await find_reservation(session, property.id, guest_ref)
+    stay_context = build_stay_context(reservation) if reservation is not None else None
+
     ai = get_ai_provider()
     reply = await ai.generate_reply(
         AIContext(
@@ -120,6 +128,7 @@ async def handle_inbound(
             all_knowledge=all_knowledge,
             default_language=property.default_language,
             retrieval_score=top_score,
+            stay_context=stay_context,
         )
     )
 
@@ -162,7 +171,7 @@ async def handle_inbound(
         )
     else:
         # Escalada: el huésped recibe un mensaje de espera y el anfitrión responde luego.
-        holding = HOLDING["en"] if reply.language == "en" else HOLDING["es"]
+        holding = HOLDING.get(reply.language, HOLDING["es"])
         await channel.send(conversation.guest_ref, holding)
         session.add(
             Message(

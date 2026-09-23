@@ -64,6 +64,9 @@ export function PropertiesPage() {
               >
                 <option value="es">Español</option>
                 <option value="en">Inglés</option>
+                <option value="fr">Francés</option>
+                <option value="de">Alemán</option>
+                <option value="it">Italiano</option>
               </select>
             </label>
             {buildings && buildings.length > 0 ? (

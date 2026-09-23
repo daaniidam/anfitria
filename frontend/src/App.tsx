@@ -9,6 +9,7 @@ import { InboxPage } from './pages/InboxPage'
 import { LoginPage } from './pages/LoginPage'
 import { MetricsPage } from './pages/MetricsPage'
 import { PropertiesPage } from './pages/PropertiesPage'
+import { ReservasPage } from './pages/ReservasPage'
 
 export default function App() {
   const { user, loading } = useAuth()
@@ -35,6 +36,7 @@ export default function App() {
         <Route path="/" element={<InboxPage />} />
         <Route path="/metricas" element={<MetricsPage />} />
         <Route path="/pisos" element={<PropertiesPage />} />
+        <Route path="/reservas" element={<ReservasPage />} />
         <Route path="/edificios" element={<BuildingsPage />} />
         <Route path="/auditoria" element={<AuditPage />} />
         <Route path="/simulador" element={<GuestSimPage />} />
