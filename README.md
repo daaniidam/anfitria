@@ -39,6 +39,17 @@ manda un aviso de espera y lo escala (el huésped nunca se queda sin respuesta):
 
 ![Métricas](docs/img/metricas.jpg)
 
+**La IA aprende** — al responder una escalada, el anfitrión puede marcar
+*«Guardar en la ficha del piso»*: la próxima vez que pregunten lo mismo,
+la IA responde sola:
+
+![Aprendizaje](docs/img/aprendizaje.jpg)
+
+**Edificios** — agrupa pisos y comparte lo común (cómo llegar, portal,
+parking, zonas comunes) con todos ellos de una vez:
+
+![Edificios](docs/img/edificios.jpg)
+
 | Acceso | Pisos y conocimiento (con modo auto/manual por piso) |
 |:---:|:---:|
 | ![Login](docs/img/login.jpg) | ![Pisos](docs/img/pisos-conocimiento.jpg) |
