@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 
 import { MetricsApi } from '../api/endpoints'
 import { Card, EmptyState } from '../components/ui'
+import type { MetricsPoint } from '../types'
 
 // Colores de datos validados (dataviz): teal ↔ latón, separables para daltonismo.
 const TEAL = '#0E8C7E'
@@ -63,9 +64,84 @@ export function MetricsPage() {
           {data.auto_answered + data.escalated > 0 ? (
             <ProportionCard auto={data.auto_answered} escalated={data.escalated} />
           ) : null}
+
+          {data.daily.some((d) => d.auto_answered + d.escalated > 0) ? (
+            <TrendCard points={data.daily} />
+          ) : null}
         </>
       )}
     </div>
+  )
+}
+
+function TrendCard({ points }: { points: MetricsPoint[] }) {
+  const maxTotal = Math.max(1, ...points.map((p) => p.auto_answered + p.escalated))
+  const H = 120
+
+  return (
+    <Card className="p-4">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <span className="eyebrow block text-muted">Actividad diaria (últimos 14 días)</span>
+        <div className="flex gap-4 text-xs text-muted">
+          <Legend swatch={TEAL} label="Resueltas por la IA" />
+          <Legend swatch={BRASS} label="Escaladas" />
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <div className="flex min-w-[420px] items-end gap-1.5" style={{ height: H }}>
+          {points.map((p) => {
+            const total = p.auto_answered + p.escalated
+            const autoH = (p.auto_answered / maxTotal) * H
+            const escH = (p.escalated / maxTotal) * H
+            const day = p.date.slice(8) // DD
+            return (
+              <div key={p.date} className="flex flex-1 flex-col items-center gap-1">
+                <div
+                  className="flex w-full max-w-7 flex-col justify-end"
+                  style={{ height: H }}
+                  role="img"
+                  aria-label={`${p.date}: ${p.auto_answered} resueltas, ${p.escalated} escaladas`}
+                >
+                  {escH > 0 ? (
+                    <div
+                      title={`${p.date} · escaladas: ${p.escalated}`}
+                      style={{ height: escH, background: BRASS }}
+                      className="rounded-t-[3px]"
+                    />
+                  ) : null}
+                  {autoH > 0 ? (
+                    <div
+                      title={`${p.date} · resueltas por la IA: ${p.auto_answered}`}
+                      style={{
+                        height: autoH,
+                        background: TEAL,
+                        marginTop: escH > 0 ? 2 : 0,
+                      }}
+                      className={escH > 0 ? '' : 'rounded-t-[3px]'}
+                    />
+                  ) : null}
+                  {total === 0 ? <div className="h-[3px] rounded bg-line" /> : null}
+                </div>
+                <span className="font-mono text-[10px] tabular-nums text-muted">{day}</span>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+function Legend({ swatch, label }: { swatch: string; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span
+        className="inline-block h-2.5 w-2.5 rounded-[2px]"
+        style={{ background: swatch }}
+      />
+      {label}
+    </span>
   )
 }
 

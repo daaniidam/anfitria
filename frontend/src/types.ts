@@ -65,6 +65,12 @@ export interface InboxItem {
   property_name: string
 }
 
+export interface MetricsPoint {
+  date: string
+  auto_answered: number
+  escalated: number
+}
+
 export interface Metrics {
   properties: number
   conversations: number
@@ -75,4 +81,23 @@ export interface Metrics {
   pending: number
   auto_rate: number
   minutes_saved: number
+  daily: MetricsPoint[]
+}
+
+export interface Notification {
+  id: number
+  kind: string
+  message: string
+  read: boolean
+  conversation_id: number | null
+  created_at: string
+}
+
+export interface AuditLog {
+  id: number
+  actor: string
+  action: string
+  detail: string | null
+  conversation_id: number | null
+  created_at: string
 }

@@ -1,4 +1,5 @@
 import type {
+  AuditLog,
   Building,
   Conversation,
   InboundResult,
@@ -6,6 +7,7 @@ import type {
   KnowledgeItem,
   Message,
   Metrics,
+  Notification,
   Property,
   User,
 } from '../types'
@@ -14,20 +16,37 @@ import { api } from './client'
 export const BuildingsApi = {
   list: () => api<Building[]>('/buildings'),
   create: (body: { name: string }) => api<Building>('/buildings', { method: 'POST', body }),
+  remove: (id: number) => api<void>(`/buildings/${id}`, { method: 'DELETE' }),
   knowledge: (id: number) => api<KnowledgeItem[]>(`/buildings/${id}/knowledge`),
   addKnowledge: (id: number, body: { category: string; content: string }) =>
     api<KnowledgeItem>(`/buildings/${id}/knowledge`, { method: 'POST', body }),
+  updateKnowledge: (id: number, itemId: number, body: { category?: string; content?: string }) =>
+    api<KnowledgeItem>(`/buildings/${id}/knowledge/${itemId}`, { method: 'PATCH', body }),
+  removeKnowledge: (id: number, itemId: number) =>
+    api<void>(`/buildings/${id}/knowledge/${itemId}`, { method: 'DELETE' }),
 }
 
 export const MetricsApi = {
   get: () => api<Metrics>('/metrics'),
 }
 
+export const NotificationsApi = {
+  list: () => api<Notification[]>('/notifications'),
+  unreadCount: () => api<{ count: number }>('/notifications/unread-count'),
+  markRead: (id: number) => api<void>(`/notifications/${id}/read`, { method: 'POST' }),
+  markAllRead: () => api<void>('/notifications/read-all', { method: 'POST' }),
+}
+
+export const AuditApi = {
+  list: () => api<AuditLog[]>('/audit'),
+}
+
 export const AuthApi = {
   register: (body: { email: string; name: string; password: string }) =>
-    api<User>('/auth/register', { method: 'POST', body, auth: false }),
+    api<User>('/auth/register', { method: 'POST', body }),
   login: (body: { email: string; password: string }) =>
-    api<{ access_token: string }>('/auth/login', { method: 'POST', body, auth: false }),
+    api<{ access_token: string }>('/auth/login', { method: 'POST', body }),
+  logout: () => api<void>('/auth/logout', { method: 'POST' }),
   me: () => api<User>('/auth/me'),
 }
 
@@ -40,10 +59,22 @@ export const PropertiesApi = {
     auto_answer?: boolean
     building_id?: number | null
   }) => api<Property>('/properties', { method: 'POST', body }),
+  remove: (id: number) => api<void>(`/properties/${id}`, { method: 'DELETE' }),
   knowledge: (propertyId: number) =>
     api<KnowledgeItem[]>(`/properties/${propertyId}/knowledge`),
   addKnowledge: (propertyId: number, body: { category: string; content: string }) =>
     api<KnowledgeItem>(`/properties/${propertyId}/knowledge`, { method: 'POST', body }),
+  updateKnowledge: (
+    propertyId: number,
+    itemId: number,
+    body: { category?: string; content?: string },
+  ) =>
+    api<KnowledgeItem>(`/properties/${propertyId}/knowledge/${itemId}`, {
+      method: 'PATCH',
+      body,
+    }),
+  removeKnowledge: (propertyId: number, itemId: number) =>
+    api<void>(`/properties/${propertyId}/knowledge/${itemId}`, { method: 'DELETE' }),
 }
 
 export const InboxApi = {

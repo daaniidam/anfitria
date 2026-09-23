@@ -1,5 +1,7 @@
 # AnfitrIA 🏨🤖
 
+[![CI](https://github.com/daaniidam/anfitria/actions/workflows/ci.yml/badge.svg)](https://github.com/daaniidam/anfitria/actions/workflows/ci.yml)
+
 **Conserje con IA supervisada para alquiler vacacional (Airbnb).** Atiende a los
 huéspedes por WhatsApp con respuestas ancladas a la información de cada piso;
 el anfitrión **aprueba, edita o envía** desde un panel, con registro de todo.
@@ -107,6 +109,23 @@ anfitria/
    Cómo conectarlo: [`docs/WHATSAPP.md`](docs/WHATSAPP.md).
 6. **Métricas + pulido** — panel de métricas del anfitrión (auto-resueltas, escaladas, tiempo ahorrado). ✅
 7. **Aprendizaje + edificios** — al responder una escalada, el anfitrión puede guardar la respuesta en la ficha (la IA la aprende para la próxima); y conocimiento **compartido por edificio** entre sus pisos. ✅
+
+## Producción / operación
+Además del arranque sin claves, el proyecto está preparado para ir en serio:
+
+- **Migraciones con Alembic** — el esquema se versiona; `create_all` solo se usa
+  en desarrollo. Aplica con `cd backend && uv run alembic upgrade head`.
+- **Webhook robusto** — verificación + firma HMAC, **idempotencia** (descarta los
+  reintentos de Meta por `message id`) y, con `PROCESS_ASYNC=true`, encola la IA
+  en el **worker ARQ** y responde a Meta al instante.
+- **Seguridad** — sesión en **cookie httpOnly** con *refresh* y revocación
+  (logout invalida los tokens), **rate limiting** en login/entrada y límites de
+  longitud en las entradas. Prompt de Claude endurecido contra inyección.
+- **Panel** — la IA **aprende** de las escaladas, avisa al anfitrión cuando algo
+  se escala (campana), registro de **auditoría** consultable y **métricas** con
+  tendencia diaria. Conocimiento editable y borrable por piso y por edificio.
+- **CI** — GitHub Actions corre `ruff` + `pytest` (backend) y `oxlint` + build +
+  `vitest` (frontend) en cada push.
 
 ## Continuar en Cursor
 Este repo trae **reglas de proyecto en `.cursor/rules/`** para que el agente de

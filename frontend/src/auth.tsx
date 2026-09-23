@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 
-import { getToken, setToken } from './api/client'
 import { AuthApi } from './api/endpoints'
 import type { User } from './types'
 
@@ -9,7 +8,7 @@ interface AuthContextValue {
   loading: boolean
   login: (email: string, password: string) => Promise<void>
   register: (email: string, name: string, password: string) => Promise<void>
-  logout: () => void
+  logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -21,13 +20,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let active = true
     async function bootstrap() {
-      if (getToken()) {
-        try {
-          const me = await AuthApi.me()
-          if (active) setUser(me)
-        } catch {
-          setToken(null)
-        }
+      // La sesión vive en una cookie httpOnly: preguntamos al backend quién somos.
+      try {
+        const me = await AuthApi.me()
+        if (active) setUser(me)
+      } catch {
+        /* sin sesión */
       }
       if (active) setLoading(false)
     }
@@ -38,8 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   async function login(email: string, password: string) {
-    const { access_token } = await AuthApi.login({ email, password })
-    setToken(access_token)
+    await AuthApi.login({ email, password })
     setUser(await AuthApi.me())
   }
 
@@ -48,8 +45,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await login(email, password)
   }
 
-  function logout() {
-    setToken(null)
+  async function logout() {
+    try {
+      await AuthApi.logout()
+    } catch {
+      /* la cookie se limpia igualmente en el servidor */
+    }
     setUser(null)
   }
 

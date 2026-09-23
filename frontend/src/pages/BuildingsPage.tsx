@@ -2,8 +2,9 @@ import { useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { BuildingsApi } from '../api/endpoints'
-import { Button, Card, EmptyState, Field, Tag, TextArea } from '../components/ui'
+import { Button, Card, EmptyState, Field, TextArea } from '../components/ui'
 import type { Building } from '../types'
+import { KnowledgeCard } from './PropertiesPage'
 
 const CATEGORIES = ['cómo llegar', 'normas', 'parking', 'zonas comunes', 'contacto', 'general']
 
@@ -95,11 +96,14 @@ function SharedKnowledgePanel({ building }: { building: Building }) {
   const [category, setCategory] = useState('cómo llegar')
   const [content, setContent] = useState('')
 
+  const invalidate = () =>
+    queryClient.invalidateQueries({ queryKey: ['building-knowledge', building.id] })
+
   const add = useMutation({
     mutationFn: () => BuildingsApi.addKnowledge(building.id, { category, content }),
     onSuccess: () => {
       setContent('')
-      void queryClient.invalidateQueries({ queryKey: ['building-knowledge', building.id] })
+      void invalidate()
     },
   })
 
@@ -148,12 +152,13 @@ function SharedKnowledgePanel({ building }: { building: Building }) {
         <ul className="flex flex-col gap-2">
           {items.map((item) => (
             <li key={item.id}>
-              <Card className="p-3">
-                <div className="mb-1 flex items-center gap-2">
-                  <Tag tone="brass">{item.category}</Tag>
-                </div>
-                <p className="text-sm text-ink">{item.content}</p>
-              </Card>
+              <KnowledgeCard
+                item={item}
+                onSave={(content) =>
+                  BuildingsApi.updateKnowledge(building.id, item.id, { content }).then(invalidate)
+                }
+                onDelete={() => BuildingsApi.removeKnowledge(building.id, item.id).then(invalidate)}
+              />
             </li>
           ))}
         </ul>

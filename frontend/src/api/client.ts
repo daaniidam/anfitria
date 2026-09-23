@@ -1,22 +1,4 @@
 const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000'
-const TOKEN_KEY = 'anfitria_token'
-
-export function getToken(): string | null {
-  try {
-    return localStorage.getItem(TOKEN_KEY)
-  } catch {
-    return null
-  }
-}
-
-export function setToken(token: string | null): void {
-  try {
-    if (token) localStorage.setItem(TOKEN_KEY, token)
-    else localStorage.removeItem(TOKEN_KEY)
-  } catch {
-    /* almacenamiento no disponible: la sesión durará lo que la pestaña */
-  }
-}
 
 export class ApiError extends Error {
   status: number
@@ -29,19 +11,20 @@ export class ApiError extends Error {
 interface Options {
   method?: string
   body?: unknown
-  auth?: boolean
 }
 
+/**
+ * Cliente HTTP. La sesión viaja en una cookie httpOnly (no accesible por JS →
+ * resiste XSS), por eso siempre enviamos `credentials: 'include'` y no guardamos
+ * el token en localStorage.
+ */
 export async function api<T>(path: string, options: Options = {}): Promise<T> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-  if (options.auth !== false) {
-    const token = getToken()
-    if (token) headers.Authorization = `Bearer ${token}`
-  }
 
   const response = await fetch(`${BASE}${path}`, {
     method: options.method ?? 'GET',
     headers,
+    credentials: 'include',
     body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
   })
 

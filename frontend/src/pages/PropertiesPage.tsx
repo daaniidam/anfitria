@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { BuildingsApi, PropertiesApi } from '../api/endpoints'
 import { Button, Card, EmptyState, Field, Tag, TextArea } from '../components/ui'
-import type { Property } from '../types'
+import type { KnowledgeItem, Property } from '../types'
 
 const CATEGORIES = ['check-in', 'wifi', 'cómo llegar', 'normas', 'recomendaciones', 'general']
 
@@ -149,12 +149,14 @@ function KnowledgePanel({ property }: { property: Property }) {
   })
   const [category, setCategory] = useState('wifi')
   const [content, setContent] = useState('')
+  const invalidate = () =>
+    queryClient.invalidateQueries({ queryKey: ['knowledge', property.id] })
 
   const add = useMutation({
     mutationFn: () => PropertiesApi.addKnowledge(property.id, { category, content }),
     onSuccess: () => {
       setContent('')
-      void queryClient.invalidateQueries({ queryKey: ['knowledge', property.id] })
+      void invalidate()
     },
   })
 
@@ -203,12 +205,13 @@ function KnowledgePanel({ property }: { property: Property }) {
         <ul className="flex flex-col gap-2">
           {items.map((item) => (
             <li key={item.id}>
-              <Card className="p-3">
-                <div className="mb-1 flex items-center gap-2">
-                  <Tag tone="brass">{item.category}</Tag>
-                </div>
-                <p className="text-sm text-ink">{item.content}</p>
-              </Card>
+              <KnowledgeCard
+                item={item}
+                onSave={(content) =>
+                  PropertiesApi.updateKnowledge(property.id, item.id, { content }).then(invalidate)
+                }
+                onDelete={() => PropertiesApi.removeKnowledge(property.id, item.id).then(invalidate)}
+              />
             </li>
           ))}
         </ul>
@@ -218,5 +221,83 @@ function KnowledgePanel({ property }: { property: Property }) {
         </p>
       )}
     </div>
+  )
+}
+
+/** Tarjeta de conocimiento con edición en línea y borrado. Reutilizable en pisos y edificios. */
+export function KnowledgeCard({
+  item,
+  onSave,
+  onDelete,
+}: {
+  item: KnowledgeItem
+  onSave: (content: string) => Promise<unknown>
+  onDelete: () => Promise<unknown>
+}) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(item.content)
+  const [busy, setBusy] = useState(false)
+
+  async function run(fn: () => Promise<unknown>) {
+    setBusy(true)
+    try {
+      await fn()
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Card className="p-3">
+      <div className="mb-1 flex items-center gap-2">
+        <Tag tone="brass">{item.category}</Tag>
+        <div className="ml-auto flex gap-2">
+          {editing ? null : (
+            <>
+              <button
+                onClick={() => {
+                  setDraft(item.content)
+                  setEditing(true)
+                }}
+                className="text-xs font-medium text-brand-ink hover:underline"
+              >
+                Editar
+              </button>
+              <button
+                onClick={() => void run(onDelete)}
+                disabled={busy}
+                className="text-xs font-medium text-muted hover:text-brass-ink hover:underline"
+              >
+                Borrar
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+      {editing ? (
+        <div className="flex flex-col gap-2">
+          <TextArea rows={2} value={draft} onChange={(e) => setDraft(e.target.value)} />
+          <div className="flex gap-2">
+            <Button
+              variant="brand"
+              disabled={busy || draft.trim().length === 0}
+              onClick={() =>
+                void run(async () => {
+                  await onSave(draft.trim())
+                  setEditing(false)
+                })
+              }
+            >
+              {busy ? 'Guardando…' : 'Guardar'}
+            </Button>
+            <Button variant="ghost" onClick={() => setEditing(false)}>
+              Cancelar
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <p className="text-sm text-ink">{item.content}</p>
+      )}
+    </Card>
   )
 }
