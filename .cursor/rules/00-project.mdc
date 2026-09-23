@@ -36,7 +36,7 @@ aprobación del anfitrión -> envío por el canal -> **AuditLog**.
 Diseña siempre con **adaptadores** (IA y canal) tras una interfaz, para poder
 cambiar de `mock`/`sim` a real sin tocar la lógica de negocio.
 
-## Roadmap por fases (producto completo: fases 1-6 ✅)
+## Roadmap por fases (producto completo: fases 1-7 ✅)
 1. **Andamiaje**: repo, docker-compose, FastAPI `/health`, React shell, Postgres/Redis. ✅
 2. **Núcleo**: auth anfitrión, pisos, conocimiento, conversaciones, canal `sim`,
    IA `mock`, flujo de aprobación + auditoría. Demo end-to-end sin claves. ✅
@@ -48,6 +48,9 @@ cambiar de `mock`/`sim` a real sin tocar la lógica de negocio.
    Graph API) + webhook `app/api/whatsapp.py` (verificación + firma HMAC). Ver docs/WHATSAPP.md. ✅
 6. **Métricas + pulido**: endpoint `/metrics` + página de métricas del anfitrión
    (auto-resueltas, escaladas, tiempo ahorrado; barra de reparto validada con dataviz). ✅
+7. **Aprendizaje + edificios**: `approve` con `save_to_knowledge` (guarda la respuesta
+   como KnowledgeItem del piso, indexado); modelo `Building` + conocimiento compartido;
+   `retrieve`/`scope_clause` incluyen el conocimiento del edificio del piso. ✅
 
 ## Cómo ejecutar
 - Todo: `docker compose up --build` (API en :8000, web en :5173).

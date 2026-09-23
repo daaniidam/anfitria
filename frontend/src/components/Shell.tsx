@@ -7,6 +7,7 @@ const NAV = [
   { to: '/', label: 'Escaladas', end: true },
   { to: '/metricas', label: 'Métricas', end: false },
   { to: '/pisos', label: 'Pisos', end: false },
+  { to: '/edificios', label: 'Edificios', end: false },
   { to: '/simulador', label: 'Simulador de huésped', end: false },
 ]
 

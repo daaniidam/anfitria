@@ -25,6 +25,10 @@ async def create_property(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> Property:
+    if data.building_id is not None:
+        from app.api.buildings import get_owned_building
+
+        await get_owned_building(session, data.building_id, user)
     prop = Property(
         owner_id=user.id,
         name=data.name,
@@ -32,6 +36,7 @@ async def create_property(
         default_language=data.default_language,
         auto_answer=data.auto_answer,
         whatsapp_phone_number_id=data.whatsapp_phone_number_id,
+        building_id=data.building_id,
     )
     session.add(prop)
     await session.commit()

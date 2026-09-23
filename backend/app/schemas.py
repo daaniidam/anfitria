@@ -27,12 +27,23 @@ class TokenOut(BaseModel):
     token_type: str = "bearer"
 
 
+class BuildingCreate(BaseModel):
+    name: str
+
+
+class BuildingOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+
+
 class PropertyCreate(BaseModel):
     name: str
     address: str | None = None
     default_language: str = "es"
     auto_answer: bool = True
     whatsapp_phone_number_id: str | None = None
+    building_id: int | None = None
 
 
 class PropertyOut(BaseModel):
@@ -43,6 +54,7 @@ class PropertyOut(BaseModel):
     default_language: str
     auto_answer: bool
     whatsapp_phone_number_id: str | None
+    building_id: int | None
 
 
 class KnowledgeCreate(BaseModel):
@@ -100,6 +112,7 @@ class InboundResult(BaseModel):
 
 class ApproveRequest(BaseModel):
     edited_text: str | None = None
+    save_to_knowledge: bool = False  # guardar la respuesta en la ficha del piso
 
 
 class InboxItem(BaseModel):

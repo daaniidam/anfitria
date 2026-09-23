@@ -26,11 +26,30 @@ class User(Base):
     properties: Mapped[list[Property]] = relationship(back_populates="owner")
 
 
+class Building(Base):
+    """Edificio o grupo de pisos con conocimiento compartido entre todos."""
+
+    __tablename__ = "buildings"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    name: Mapped[str] = mapped_column(String(255))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+    properties: Mapped[list[Property]] = relationship(back_populates="building")
+    knowledge: Mapped[list[KnowledgeItem]] = relationship(
+        back_populates="building", cascade="all, delete-orphan"
+    )
+
+
 class Property(Base):
     __tablename__ = "properties"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    building_id: Mapped[int | None] = mapped_column(
+        ForeignKey("buildings.id"), default=None, index=True
+    )
     name: Mapped[str] = mapped_column(String(255))
     address: Mapped[str | None] = mapped_column(String(500), default=None)
     default_language: Mapped[str] = mapped_column(String(8), default="es")
@@ -41,6 +60,7 @@ class Property(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     owner: Mapped[User] = relationship(back_populates="properties")
+    building: Mapped[Building | None] = relationship(back_populates="properties")
     knowledge: Mapped[list[KnowledgeItem]] = relationship(
         back_populates="property", cascade="all, delete-orphan"
     )
@@ -56,13 +76,20 @@ class KnowledgeItem(Base):
     __tablename__ = "knowledge_items"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    property_id: Mapped[int] = mapped_column(ForeignKey("properties.id"), index=True)
+    # Pertenece a un piso concreto o a un edificio (conocimiento compartido). Exactamente uno.
+    property_id: Mapped[int | None] = mapped_column(
+        ForeignKey("properties.id"), default=None, index=True
+    )
+    building_id: Mapped[int | None] = mapped_column(
+        ForeignKey("buildings.id"), default=None, index=True
+    )
     category: Mapped[str] = mapped_column(String(64), default="general")
     content: Mapped[str] = mapped_column(Text)
     embedding: Mapped[list[float] | None] = mapped_column(Embedding(), default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
-    property: Mapped[Property] = relationship(back_populates="knowledge")
+    property: Mapped[Property | None] = relationship(back_populates="knowledge")
+    building: Mapped[Building | None] = relationship(back_populates="knowledge")
 
 
 class Conversation(Base):

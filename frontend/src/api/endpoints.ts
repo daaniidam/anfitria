@@ -1,4 +1,5 @@
 import type {
+  Building,
   Conversation,
   InboundResult,
   InboxItem,
@@ -9,6 +10,14 @@ import type {
   User,
 } from '../types'
 import { api } from './client'
+
+export const BuildingsApi = {
+  list: () => api<Building[]>('/buildings'),
+  create: (body: { name: string }) => api<Building>('/buildings', { method: 'POST', body }),
+  knowledge: (id: number) => api<KnowledgeItem[]>(`/buildings/${id}/knowledge`),
+  addKnowledge: (id: number, body: { category: string; content: string }) =>
+    api<KnowledgeItem>(`/buildings/${id}/knowledge`, { method: 'POST', body }),
+}
 
 export const MetricsApi = {
   get: () => api<Metrics>('/metrics'),
@@ -29,6 +38,7 @@ export const PropertiesApi = {
     address?: string
     default_language: string
     auto_answer?: boolean
+    building_id?: number | null
   }) => api<Property>('/properties', { method: 'POST', body }),
   knowledge: (propertyId: number) =>
     api<KnowledgeItem[]>(`/properties/${propertyId}/knowledge`),
@@ -38,10 +48,10 @@ export const PropertiesApi = {
 
 export const InboxApi = {
   list: () => api<InboxItem[]>('/inbox'),
-  approve: (draftId: number, editedText: string | null) =>
+  approve: (draftId: number, editedText: string | null, saveToKnowledge: boolean) =>
     api<Message>(`/drafts/${draftId}/approve`, {
       method: 'POST',
-      body: { edited_text: editedText },
+      body: { edited_text: editedText, save_to_knowledge: saveToKnowledge },
     }),
 }
 

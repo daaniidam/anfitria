@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import auth, conversations, metrics, properties, whatsapp
+from app.api import auth, buildings, conversations, metrics, properties, whatsapp
 from app.config import get_settings
 from app.db import init_db
 
@@ -38,6 +38,7 @@ def create_app() -> FastAPI:
         }
 
     app.include_router(auth.router)
+    app.include_router(buildings.router)
     app.include_router(properties.router)
     app.include_router(conversations.router)
     app.include_router(whatsapp.router)

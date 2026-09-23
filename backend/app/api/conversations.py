@@ -148,4 +148,11 @@ async def approve(
     conversation = await _owned_conversation(session, inbound.conversation_id, user)
     if draft.status == "sent":
         raise HTTPException(status_code=400, detail="El borrador ya fue enviado")
-    return await approve_draft(session, draft, conversation, data.edited_text)
+    return await approve_draft(
+        session,
+        draft,
+        conversation,
+        edited_text=data.edited_text,
+        question=inbound.text,
+        save_to_knowledge=data.save_to_knowledge,
+    )

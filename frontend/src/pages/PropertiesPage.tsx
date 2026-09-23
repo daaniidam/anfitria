@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { PropertiesApi } from '../api/endpoints'
+import { BuildingsApi, PropertiesApi } from '../api/endpoints'
 import { Button, Card, EmptyState, Field, Tag, TextArea } from '../components/ui'
 import type { Property } from '../types'
 
@@ -14,11 +14,19 @@ export function PropertiesPage() {
   const [name, setName] = useState('')
   const [lang, setLang] = useState('es')
   const [autoAnswer, setAutoAnswer] = useState(true)
+  const [buildingId, setBuildingId] = useState<number | ''>('')
 
+  const { data: buildings } = useQuery({ queryKey: ['buildings'], queryFn: BuildingsApi.list })
   const selected = properties?.find((p) => p.id === selectedId) ?? null
 
   const create = useMutation({
-    mutationFn: () => PropertiesApi.create({ name, default_language: lang, auto_answer: autoAnswer }),
+    mutationFn: () =>
+      PropertiesApi.create({
+        name,
+        default_language: lang,
+        auto_answer: autoAnswer,
+        building_id: buildingId === '' ? null : buildingId,
+      }),
     onSuccess: (property) => {
       setName('')
       setSelectedId(property.id)
@@ -58,6 +66,23 @@ export function PropertiesPage() {
                 <option value="en">Inglés</option>
               </select>
             </label>
+            {buildings && buildings.length > 0 ? (
+              <label className="block">
+                <span className="mb-1 block text-sm font-medium text-ink">Edificio (opcional)</span>
+                <select
+                  value={buildingId}
+                  onChange={(e) => setBuildingId(e.target.value === '' ? '' : Number(e.target.value))}
+                  className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:ring-2 focus:ring-brand-soft"
+                >
+                  <option value="">Sin edificio</option>
+                  {buildings.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
             <label className="flex items-start gap-2.5 rounded-lg bg-sunk/60 px-3 py-2.5">
               <input
                 type="checkbox"

@@ -4,11 +4,12 @@
 huéspedes por WhatsApp con respuestas ancladas a la información de cada piso;
 el anfitrión **aprueba, edita o envía** desde un panel, con registro de todo.
 
-> Estado: **producto completo (fases 1-6)**. La IA responde sola por WhatsApp
+> Estado: **producto completo (fases 1-7)**. La IA responde sola por WhatsApp
 > anclándose en la ficha del piso (RAG + pgvector, o Claude); cuando duda, avisa
-> al huésped y **escala** al anfitrión; y hay panel de **métricas** de rendimiento.
-> Todo arranca sin claves ni coste (modos `mock`/`sim`). Ver el roadmap abajo y
-> las [capturas](#interfaz).
+> al huésped y **escala** al anfitrión — que puede **guardar su respuesta para que
+> la IA la aprenda**. Conocimiento **compartido por edificio**, panel de métricas,
+> y todo arranca sin claves ni coste (`mock`/`sim`). Ver el roadmap y las
+> [capturas](#interfaz).
 
 ## API (Fase 2)
 - `POST /auth/register` · `POST /auth/login` · `GET /auth/me`
@@ -94,6 +95,7 @@ anfitria/
 5. **WhatsApp real** — canal Meta Cloud API (envío + webhook con firma HMAC). ✅
    Cómo conectarlo: [`docs/WHATSAPP.md`](docs/WHATSAPP.md).
 6. **Métricas + pulido** — panel de métricas del anfitrión (auto-resueltas, escaladas, tiempo ahorrado). ✅
+7. **Aprendizaje + edificios** — al responder una escalada, el anfitrión puede guardar la respuesta en la ficha (la IA la aprende para la próxima); y conocimiento **compartido por edificio** entre sus pisos. ✅
 
 ## Continuar en Cursor
 Este repo trae **reglas de proyecto en `.cursor/rules/`** para que el agente de

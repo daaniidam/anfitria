@@ -4,12 +4,18 @@ export interface User {
   name: string
 }
 
+export interface Building {
+  id: number
+  name: string
+}
+
 export interface Property {
   id: number
   name: string
   address: string | null
   default_language: string
   auto_answer: boolean
+  building_id: number | null
 }
 
 export interface KnowledgeItem {

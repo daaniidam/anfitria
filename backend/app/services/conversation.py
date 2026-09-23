@@ -13,7 +13,7 @@ from app.adapters.channel.factory import get_channel
 from app.adapters.embeddings.factory import get_embedding_provider
 from app.config import get_settings
 from app.models import AuditLog, Conversation, Draft, KnowledgeItem, Message, Property
-from app.services.retrieval import retrieve
+from app.services.retrieval import retrieve, scope_clause
 
 
 # Mensaje de espera que recibe el huésped al instante cuando se escala al anfitrión.
@@ -67,14 +67,14 @@ async def handle_inbound(
     # RAG: recuperar los fragmentos más relevantes (para el mock y como señal de confianza)
     embedder = get_embedding_provider()
     query_embedding = embedder.embed([text])[0]
-    hits = await retrieve(session, property.id, query_embedding)
+    hits = await retrieve(session, property.id, query_embedding, building_id=property.building_id)
     knowledge = [content for content, _ in hits]
     top_score = hits[0][1] if hits else 0.0
 
-    # Todo el conocimiento del piso (los modelos que razonan semánticamente, como Claude,
-    # eligen ellos mismos lo relevante — entienden "¿a qué hora entro?" = check-in).
+    # Todo el conocimiento del piso + el compartido de su edificio (los modelos que razonan
+    # semánticamente, como Claude, eligen ellos mismos lo relevante).
     all_rows = await session.execute(
-        select(KnowledgeItem.content).where(KnowledgeItem.property_id == property.id)
+        select(KnowledgeItem.content).where(scope_clause(property.id, property.building_id))
     )
     all_knowledge = [row[0] for row in all_rows.all()]
 

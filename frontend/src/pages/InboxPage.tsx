@@ -42,13 +42,15 @@ export function InboxPage() {
 function ApprovalCard({ item }: { item: InboxItem }) {
   const queryClient = useQueryClient()
   const [text, setText] = useState(item.draft.text)
+  const [save, setSave] = useState(true)
   const edited = text.trim() !== item.draft.text.trim()
 
   const approve = useMutation({
-    mutationFn: () => InboxApi.approve(item.draft.id, edited ? text : null),
+    mutationFn: () => InboxApi.approve(item.draft.id, edited ? text : null, save),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['inbox'] })
       void queryClient.invalidateQueries({ queryKey: ['conv-messages'] })
+      void queryClient.invalidateQueries({ queryKey: ['metrics'] })
     },
   })
 
@@ -72,6 +74,21 @@ function ApprovalCard({ item }: { item: InboxItem }) {
           </span>
           <TextArea rows={3} value={text} onChange={(e) => setText(e.target.value)} />
         </div>
+
+        <label className="flex items-start gap-2.5 rounded-lg bg-sunk/60 px-3 py-2.5">
+          <input
+            type="checkbox"
+            checked={save}
+            onChange={(e) => setSave(e.target.checked)}
+            className="mt-0.5 h-4 w-4 accent-brand"
+          />
+          <span className="text-sm text-ink">
+            Guardar en la ficha del piso
+            <span className="mt-0.5 block text-xs text-muted">
+              La IA lo aprende: la próxima vez que pregunten lo mismo, responderá sola.
+            </span>
+          </span>
+        </label>
 
         <div className="flex items-center justify-between">
           <span className="text-xs text-muted">

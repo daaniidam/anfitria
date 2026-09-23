@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { useAuth } from './auth'
 import { Shell } from './components/Shell'
+import { BuildingsPage } from './pages/BuildingsPage'
 import { GuestSimPage } from './pages/GuestSimPage'
 import { InboxPage } from './pages/InboxPage'
 import { LoginPage } from './pages/LoginPage'
@@ -33,6 +34,7 @@ export default function App() {
         <Route path="/" element={<InboxPage />} />
         <Route path="/metricas" element={<MetricsPage />} />
         <Route path="/pisos" element={<PropertiesPage />} />
+        <Route path="/edificios" element={<BuildingsPage />} />
         <Route path="/simulador" element={<GuestSimPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
