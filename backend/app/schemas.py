@@ -15,6 +15,25 @@ class UserOut(BaseModel):
     id: int
     email: EmailStr
     name: str
+    role: str = "owner"
+    org_id: int | None = None
+
+
+class MemberCreate(BaseModel):
+    email: EmailStr
+    name: str = Field(min_length=1, max_length=120)
+    password: str = Field(min_length=8, max_length=128)
+    role: str = Field(default="member", pattern="^(owner|member)$")
+
+
+class MemberRoleUpdate(BaseModel):
+    role: str = Field(pattern="^(owner|member)$")
+
+
+class OrgOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
 
 
 class LoginRequest(BaseModel):

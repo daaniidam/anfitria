@@ -4,6 +4,7 @@ import { useAuth } from './auth'
 import { Shell } from './components/Shell'
 import { AuditPage } from './pages/AuditPage'
 import { BuildingsPage } from './pages/BuildingsPage'
+import { EquipoPage } from './pages/EquipoPage'
 import { GuestSimPage } from './pages/GuestSimPage'
 import { InboxPage } from './pages/InboxPage'
 import { LoginPage } from './pages/LoginPage'
@@ -39,6 +40,7 @@ export default function App() {
         <Route path="/reservas" element={<ReservasPage />} />
         <Route path="/edificios" element={<BuildingsPage />} />
         <Route path="/auditoria" element={<AuditPage />} />
+        <Route path="/equipo" element={<EquipoPage />} />
         <Route path="/simulador" element={<GuestSimPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

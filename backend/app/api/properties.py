@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.adapters.embeddings.factory import get_embedding_provider
 from app.db import get_session
-from app.deps import get_current_user
+from app.deps import get_current_user, require_owner
 from app.models import KnowledgeItem, Property, User
 from app.schemas import (
     KnowledgeCreate,
@@ -24,7 +24,7 @@ router = APIRouter(tags=["properties"])
 
 async def get_owned_property(session: AsyncSession, property_id: int, user: User) -> Property:
     prop = await session.get(Property, property_id)
-    if prop is None or prop.owner_id != user.id:
+    if prop is None or prop.org_id != user.org_id:
         raise HTTPException(status_code=404, detail="Piso no encontrado")
     return prop
 
@@ -51,6 +51,7 @@ async def create_property(
         await get_owned_building(session, data.building_id, user)
     prop = Property(
         owner_id=user.id,
+        org_id=user.org_id,
         name=data.name,
         address=data.address,
         default_language=data.default_language,
@@ -73,7 +74,7 @@ async def list_properties(
 ) -> list[Property]:
     result = await session.execute(
         select(Property)
-        .where(Property.owner_id == user.id)
+        .where(Property.org_id == user.org_id)
         .order_by(Property.id)
         .limit(limit)
         .offset(offset)
@@ -84,7 +85,7 @@ async def list_properties(
 @router.delete("/properties/{property_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_property(
     property_id: int,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_owner),
     session: AsyncSession = Depends(get_session),
 ) -> None:
     prop = await get_owned_property(session, property_id, user)

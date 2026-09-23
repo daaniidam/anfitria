@@ -2,6 +2,13 @@ export interface User {
   id: number
   email: string
   name: string
+  role: string
+  org_id: number | null
+}
+
+export interface Org {
+  id: number
+  name: string
 }
 
 export interface Building {

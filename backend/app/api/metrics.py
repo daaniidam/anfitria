@@ -58,7 +58,7 @@ async def metrics(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> MetricsOut:
-    prop_ids = select(Property.id).where(Property.owner_id == user.id)
+    prop_ids = select(Property.id).where(Property.org_id == user.org_id)
 
     def _messages(direction: str) -> Select:
         return (
@@ -77,7 +77,7 @@ async def metrics(
         )
 
     properties = await _count(
-        session, select(func.count()).select_from(Property).where(Property.owner_id == user.id)
+        session, select(func.count()).select_from(Property).where(Property.org_id == user.org_id)
     )
     conversations = await _count(
         session,

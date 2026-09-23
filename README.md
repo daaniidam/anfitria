@@ -53,6 +53,12 @@ parking, zonas comunes) con todos ellos de una vez:
 
 ![Edificios](docs/img/edificios.jpg)
 
+**Equipo (multiusuario y roles)** — varias personas comparten la misma cartera:
+el **propietario** gestiona el equipo e invita miembros; los **miembros** operan
+(responden, editan fichas) pero no borran pisos. Datos aislados por organización.
+
+![Equipo](docs/img/equipo.jpg)
+
 **Reservas** — con la reserva del huésped, la IA sabe la **fase de la estancia**
 (pre-llegada / alojado ahora / salida) y responde con fechas concretas: *«tu
 check-in es mañana a las 15:00»* en vez de en genérico. Multi-idioma **ES/EN/FR/DE/IT**.

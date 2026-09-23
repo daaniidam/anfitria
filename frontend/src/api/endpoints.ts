@@ -8,6 +8,7 @@ import type {
   Message,
   Metrics,
   Notification,
+  Org,
   Property,
   Reservation,
   User,
@@ -40,6 +41,16 @@ export const NotificationsApi = {
 
 export const AuditApi = {
   list: () => api<AuditLog[]>('/audit'),
+}
+
+export const OrgApi = {
+  get: () => api<Org>('/org'),
+  members: () => api<User[]>('/org/members'),
+  invite: (body: { email: string; name: string; password: string; role?: string }) =>
+    api<User>('/org/members', { method: 'POST', body }),
+  setRole: (id: number, role: string) =>
+    api<User>(`/org/members/${id}`, { method: 'PATCH', body: { role } }),
+  remove: (id: number) => api<void>(`/org/members/${id}`, { method: 'DELETE' }),
 }
 
 export const AuthApi = {

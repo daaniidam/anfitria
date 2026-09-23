@@ -190,6 +190,7 @@ async def handle_inbound(
         session.add(
             Notification(
                 owner_id=property.owner_id,
+                org_id=property.org_id,
                 conversation_id=conversation.id,
                 kind="escalation",
                 message=f'{property.name}: "{preview}"',

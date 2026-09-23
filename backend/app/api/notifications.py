@@ -19,7 +19,7 @@ async def list_notifications(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> list[Notification]:
-    stmt = select(Notification).where(Notification.owner_id == user.id)
+    stmt = select(Notification).where(Notification.org_id == user.org_id)
     if only_unread:
         stmt = stmt.where(Notification.read.is_(False))
     stmt = stmt.order_by(Notification.id.desc()).limit(limit).offset(offset)
@@ -35,7 +35,7 @@ async def unread_count(
     count = await session.execute(
         select(func.count())
         .select_from(Notification)
-        .where(Notification.owner_id == user.id, Notification.read.is_(False))
+        .where(Notification.org_id == user.org_id, Notification.read.is_(False))
     )
     return {"count": int(count.scalar_one() or 0)}
 
@@ -47,7 +47,7 @@ async def mark_read(
     session: AsyncSession = Depends(get_session),
 ) -> None:
     notification = await session.get(Notification, notification_id)
-    if notification is None or notification.owner_id != user.id:
+    if notification is None or notification.org_id != user.org_id:
         raise HTTPException(status_code=404, detail="Aviso no encontrado")
     notification.read = True
     await session.commit()
@@ -60,7 +60,7 @@ async def mark_all_read(
 ) -> None:
     await session.execute(
         update(Notification)
-        .where(Notification.owner_id == user.id, Notification.read.is_(False))
+        .where(Notification.org_id == user.org_id, Notification.read.is_(False))
         .values(read=True)
     )
     await session.commit()

@@ -21,7 +21,7 @@ async def list_audit(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> list[AuditLog]:
-    prop_ids = select(Property.id).where(Property.owner_id == user.id)
+    prop_ids = select(Property.id).where(Property.org_id == user.org_id)
     conv_ids = select(Conversation.id).where(Conversation.property_id.in_(prop_ids))
     result = await session.execute(
         select(AuditLog)

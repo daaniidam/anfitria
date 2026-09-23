@@ -39,3 +39,10 @@ async def get_current_user(
         # Usuario inexistente o token revocado (token_version incrementado).
         raise unauthorized
     return user
+
+
+async def require_owner(user: User = Depends(get_current_user)) -> User:
+    """Solo el propietario (owner) de la org puede gestionar el equipo y borrar pisos."""
+    if user.role != "owner":
+        raise HTTPException(status_code=403, detail="Solo el propietario puede hacer esto")
+    return user

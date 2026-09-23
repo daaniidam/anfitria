@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import get_settings
 from app.db import get_session
 from app.deps import ACCESS_COOKIE, CSRF_COOKIE, get_current_user
-from app.models import User
+from app.models import Organization, User
 from app.ratelimit import limiter
 from app.schemas import LoginRequest, TokenOut, UserCreate, UserOut
 from app.security import (
@@ -61,7 +61,17 @@ async def register(
     existing = await session.execute(select(User).where(User.email == data.email))
     if existing.scalar_one_or_none() is not None:
         raise HTTPException(status_code=400, detail="El email ya está registrado")
-    user = User(email=data.email, name=data.name, password_hash=hash_password(data.password))
+    # Al registrarse se crea su organización y el usuario es el propietario (owner).
+    org = Organization(name=data.name)
+    session.add(org)
+    await session.flush()
+    user = User(
+        email=data.email,
+        name=data.name,
+        password_hash=hash_password(data.password),
+        org_id=org.id,
+        role="owner",
+    )
     session.add(user)
     await session.commit()
     await session.refresh(user)

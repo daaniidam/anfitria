@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.adapters.embeddings.factory import get_embedding_provider
 from app.db import get_session
-from app.deps import get_current_user
+from app.deps import get_current_user, require_owner
 from app.models import Building, KnowledgeItem, User
 from app.schemas import (
     BuildingCreate,
@@ -20,7 +20,7 @@ router = APIRouter(tags=["buildings"])
 
 async def get_owned_building(session: AsyncSession, building_id: int, user: User) -> Building:
     building = await session.get(Building, building_id)
-    if building is None or building.owner_id != user.id:
+    if building is None or building.org_id != user.org_id:
         raise HTTPException(status_code=404, detail="Edificio no encontrado")
     return building
 
@@ -41,7 +41,7 @@ async def create_building(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> Building:
-    building = Building(owner_id=user.id, name=data.name)
+    building = Building(owner_id=user.id, org_id=user.org_id, name=data.name)
     session.add(building)
     await session.commit()
     await session.refresh(building)
@@ -54,7 +54,7 @@ async def list_buildings(
     session: AsyncSession = Depends(get_session),
 ) -> list[Building]:
     result = await session.execute(
-        select(Building).where(Building.owner_id == user.id).order_by(Building.id)
+        select(Building).where(Building.org_id == user.org_id).order_by(Building.id)
     )
     return list(result.scalars().all())
 
@@ -137,7 +137,7 @@ async def delete_building_knowledge(
 @router.delete("/buildings/{building_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_building(
     building_id: int,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_owner),
     session: AsyncSession = Depends(get_session),
 ) -> None:
     building = await get_owned_building(session, building_id, user)

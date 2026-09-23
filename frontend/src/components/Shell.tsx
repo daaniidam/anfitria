@@ -12,6 +12,7 @@ const NAV = [
   { to: '/reservas', label: 'Reservas', end: false },
   { to: '/edificios', label: 'Edificios', end: false },
   { to: '/auditoria', label: 'Auditoría', end: false },
+  { to: '/equipo', label: 'Equipo', end: false },
   { to: '/simulador', label: 'Simulador de huésped', end: false },
 ]
 

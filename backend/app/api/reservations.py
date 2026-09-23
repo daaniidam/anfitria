@@ -70,7 +70,7 @@ async def list_reservations(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> list[Reservation]:
-    prop_ids = select(Property.id).where(Property.owner_id == user.id)
+    prop_ids = select(Property.id).where(Property.org_id == user.org_id)
     result = await session.execute(
         select(Reservation)
         .where(Reservation.property_id.in_(prop_ids))

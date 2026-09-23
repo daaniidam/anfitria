@@ -14,10 +14,25 @@ def _utcnow() -> datetime:
     return datetime.now(UTC)
 
 
+class Organization(Base):
+    """Cuenta/equipo del cliente. Los pisos, edificios y reservas son de la org,
+    no de un usuario suelto: así varios empleados comparten la misma cartera."""
+
+    __tablename__ = "organizations"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(160))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+    members: Mapped[list[User]] = relationship(back_populates="organization")
+
+
 class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    org_id: Mapped[int | None] = mapped_column(ForeignKey("organizations.id"), index=True)
+    role: Mapped[str] = mapped_column(String(16), default="owner")  # owner | member
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     name: Mapped[str] = mapped_column(String(255))
     password_hash: Mapped[str] = mapped_column(String(255))
@@ -27,6 +42,7 @@ class User(Base):
     refresh_jti: Mapped[str | None] = mapped_column(String(64), default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
+    organization: Mapped[Organization | None] = relationship(back_populates="members")
     properties: Mapped[list[Property]] = relationship(back_populates="owner")
 
 
@@ -37,6 +53,7 @@ class Building(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    org_id: Mapped[int | None] = mapped_column(ForeignKey("organizations.id"), index=True)
     name: Mapped[str] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
@@ -51,6 +68,7 @@ class Property(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    org_id: Mapped[int | None] = mapped_column(ForeignKey("organizations.id"), index=True)
     building_id: Mapped[int | None] = mapped_column(
         ForeignKey("buildings.id"), default=None, index=True
     )
@@ -198,6 +216,7 @@ class Notification(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    org_id: Mapped[int | None] = mapped_column(ForeignKey("organizations.id"), index=True)
     conversation_id: Mapped[int | None] = mapped_column(
         ForeignKey("conversations.id"), default=None, index=True
     )

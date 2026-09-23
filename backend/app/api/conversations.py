@@ -29,7 +29,7 @@ async def _owned_conversation(
     if conversation is None:
         raise HTTPException(status_code=404, detail="Conversación no encontrada")
     prop = await session.get(Property, conversation.property_id)
-    if prop is None or prop.owner_id != user.id:
+    if prop is None or prop.org_id != user.org_id:
         raise HTTPException(status_code=404, detail="Conversación no encontrada")
     return conversation
 
@@ -47,7 +47,7 @@ async def sim_inbound(
     session: AsyncSession = Depends(get_session),
 ) -> InboundResult:
     prop = await session.get(Property, data.property_id)
-    if prop is None or prop.owner_id != user.id:
+    if prop is None or prop.org_id != user.org_id:
         raise HTTPException(status_code=404, detail="Piso no encontrado")
     outcome = await handle_inbound(session, prop, data.guest_ref, data.text)
     return InboundResult(
@@ -68,7 +68,7 @@ async def list_conversations(
     result = await session.execute(
         select(Conversation)
         .join(Property, Conversation.property_id == Property.id)
-        .where(Property.owner_id == user.id)
+        .where(Property.org_id == user.org_id)
         .order_by(Conversation.id.desc())
         .limit(limit)
         .offset(offset)
@@ -114,7 +114,7 @@ async def inbox(
         .join(Message, Draft.inbound_message_id == Message.id)
         .join(Conversation, Message.conversation_id == Conversation.id)
         .join(Property, Conversation.property_id == Property.id)
-        .where(Property.owner_id == user.id, Draft.status == "pending")
+        .where(Property.org_id == user.org_id, Draft.status == "pending")
         .order_by(Draft.id.desc())
         .limit(limit)
         .offset(offset)
@@ -147,7 +147,7 @@ async def list_drafts(
         .join(Message, Draft.inbound_message_id == Message.id)
         .join(Conversation, Message.conversation_id == Conversation.id)
         .join(Property, Conversation.property_id == Property.id)
-        .where(Property.owner_id == user.id, Draft.status == status)
+        .where(Property.org_id == user.org_id, Draft.status == status)
         .order_by(Draft.id.desc())
         .limit(limit)
         .offset(offset)
