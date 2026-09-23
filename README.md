@@ -53,6 +53,12 @@ parking, zonas comunes) con todos ellos de una vez:
 
 ![Edificios](docs/img/edificios.jpg)
 
+**Atención en vivo (handoff)** — el anfitrión puede **tomar el control** de una
+conversación: la IA se aparta y responde una persona en tiempo real. Cuando quiera,
+devuelve el control a la IA.
+
+![Atención en vivo](docs/img/handoff.jpg)
+
 **Equipo (multiusuario y roles)** — varias personas comparten la misma cartera:
 el **propietario** gestiona el equipo e invita miembros; los **miembros** operan
 (responden, editan fichas) pero no borran pisos. Datos aislados por organización.

@@ -125,4 +125,8 @@ export const ConversationsApi = {
     api<InboundResult>('/channels/sim/inbound', { method: 'POST', body }),
   messages: (conversationId: number) =>
     api<Message[]>(`/conversations/${conversationId}/messages`),
+  takeover: (id: number) => api<Conversation>(`/conversations/${id}/takeover`, { method: 'POST' }),
+  release: (id: number) => api<Conversation>(`/conversations/${id}/release`, { method: 'POST' }),
+  reply: (id: number, text: string) =>
+    api<Message>(`/conversations/${id}/reply`, { method: 'POST', body: { text } }),
 }

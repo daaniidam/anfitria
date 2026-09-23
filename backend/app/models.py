@@ -146,6 +146,9 @@ class Conversation(Base):
     property_id: Mapped[int] = mapped_column(ForeignKey("properties.id"), index=True)
     guest_ref: Mapped[str] = mapped_column(String(64), index=True)  # teléfono o id del huésped
     channel: Mapped[str] = mapped_column(String(32), default="sim")
+    # Handoff en vivo: si True, la IA se aparta y responde una persona del equipo.
+    handoff: Mapped[bool] = mapped_column(default=False)
+    assigned_to: Mapped[int | None] = mapped_column(ForeignKey("users.id"), default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     property: Mapped[Property] = relationship(back_populates="conversations")

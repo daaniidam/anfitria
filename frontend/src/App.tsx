@@ -4,6 +4,7 @@ import { useAuth } from './auth'
 import { Shell } from './components/Shell'
 import { AuditPage } from './pages/AuditPage'
 import { BuildingsPage } from './pages/BuildingsPage'
+import { ConversacionesPage } from './pages/ConversacionesPage'
 import { EquipoPage } from './pages/EquipoPage'
 import { GuestSimPage } from './pages/GuestSimPage'
 import { InboxPage } from './pages/InboxPage'
@@ -41,6 +42,7 @@ export default function App() {
         <Route path="/edificios" element={<BuildingsPage />} />
         <Route path="/auditoria" element={<AuditPage />} />
         <Route path="/equipo" element={<EquipoPage />} />
+        <Route path="/conversaciones" element={<ConversacionesPage />} />
         <Route path="/simulador" element={<GuestSimPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

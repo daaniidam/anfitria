@@ -3,9 +3,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.adapters.channel.factory import get_channel
 from app.db import get_session
 from app.deps import get_current_user
-from app.models import Conversation, Draft, Message, Property, User
+from app.models import AuditLog, Conversation, Draft, Message, Property, User
 from app.ratelimit import limiter
 from app.schemas import (
     ApproveRequest,
@@ -14,6 +15,7 @@ from app.schemas import (
     InboundMessage,
     InboundResult,
     InboxItem,
+    LiveReplyRequest,
     MessageOut,
 )
 from app.services.conversation import handle_inbound
@@ -53,7 +55,7 @@ async def sim_inbound(
     return InboundResult(
         conversation=ConversationOut.model_validate(outcome.conversation),
         inbound=MessageOut.model_validate(outcome.inbound),
-        draft=DraftOut.model_validate(outcome.draft),
+        draft=DraftOut.model_validate(outcome.draft) if outcome.draft else None,
         answered=outcome.answered,
     )
 
@@ -181,3 +183,68 @@ async def approve(
         question=inbound.text,
         save_to_knowledge=data.save_to_knowledge,
     )
+
+
+@router.post("/conversations/{conversation_id}/takeover", response_model=ConversationOut)
+async def takeover(
+    conversation_id: int,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> Conversation:
+    """El anfitrión toma el control: la IA se aparta y responde una persona en vivo."""
+    conversation = await _owned_conversation(session, conversation_id, user)
+    conversation.handoff = True
+    conversation.assigned_to = user.id
+    session.add(
+        AuditLog(actor="host", action="handoff_started", conversation_id=conversation.id)
+    )
+    await session.commit()
+    await session.refresh(conversation)
+    return conversation
+
+
+@router.post("/conversations/{conversation_id}/release", response_model=ConversationOut)
+async def release(
+    conversation_id: int,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> Conversation:
+    """Devuelve la conversación a la IA."""
+    conversation = await _owned_conversation(session, conversation_id, user)
+    conversation.handoff = False
+    conversation.assigned_to = None
+    session.add(
+        AuditLog(actor="host", action="handoff_ended", conversation_id=conversation.id)
+    )
+    await session.commit()
+    await session.refresh(conversation)
+    return conversation
+
+
+@router.post(
+    "/conversations/{conversation_id}/reply",
+    response_model=MessageOut,
+    status_code=status.HTTP_201_CREATED,
+)
+async def live_reply(
+    conversation_id: int,
+    data: LiveReplyRequest,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> Message:
+    """El anfitrión escribe directamente al huésped (atención en vivo)."""
+    conversation = await _owned_conversation(session, conversation_id, user)
+    await get_channel().send(conversation.guest_ref, data.text)
+    outbound = Message(
+        conversation_id=conversation.id,
+        direction="out",
+        text=data.text,
+        language="es",
+    )
+    session.add(outbound)
+    session.add(
+        AuditLog(actor="host", action="host_replied_live", conversation_id=conversation.id)
+    )
+    await session.commit()
+    await session.refresh(outbound)
+    return outbound

@@ -38,7 +38,7 @@ HOLDING = {
 class InboundOutcome:
     conversation: Conversation
     inbound: Message
-    draft: Draft
+    draft: Draft | None
     answered: bool
     duplicate: bool = False  # True si el mensaje ya se había procesado (reintento del webhook)
 
@@ -100,6 +100,25 @@ async def handle_inbound(
     )
     session.add(inbound)
     await session.flush()
+
+    # Handoff en vivo: una persona ha tomado el control; la IA no responde, solo avisa.
+    if conversation.handoff:
+        session.add(
+            AuditLog(actor="ai", action="handoff_inbound", conversation_id=conversation.id)
+        )
+        session.add(
+            Notification(
+                owner_id=property.owner_id,
+                org_id=property.org_id,
+                conversation_id=conversation.id,
+                kind="handoff",
+                message=f"{property.name}: nuevo mensaje (atención en vivo)",
+            )
+        )
+        await session.commit()
+        return InboundOutcome(
+            conversation=conversation, inbound=inbound, draft=None, answered=False
+        )
 
     # RAG: recuperar los fragmentos más relevantes (para el mock y como señal de confianza)
     embedder = get_embedding_provider()

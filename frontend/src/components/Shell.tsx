@@ -7,6 +7,7 @@ import { useAuth } from '../auth'
 
 const NAV = [
   { to: '/', label: 'Escaladas', end: true },
+  { to: '/conversaciones', label: 'Conversaciones', end: false },
   { to: '/metricas', label: 'Métricas', end: false },
   { to: '/pisos', label: 'Pisos', end: false },
   { to: '/reservas', label: 'Reservas', end: false },

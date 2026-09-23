@@ -158,13 +158,19 @@ class ConversationOut(BaseModel):
     property_id: int
     guest_ref: str
     channel: str
+    handoff: bool = False
+    assigned_to: int | None = None
 
 
 class InboundResult(BaseModel):
     conversation: ConversationOut
     inbound: MessageOut
-    draft: DraftOut
+    draft: DraftOut | None  # None si la conversación está en atención en vivo (handoff)
     answered: bool  # True: la IA respondió sola; False: se escaló al anfitrión
+
+
+class LiveReplyRequest(BaseModel):
+    text: str = Field(min_length=1, max_length=4000)
 
 
 class ApproveRequest(BaseModel):

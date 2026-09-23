@@ -54,6 +54,8 @@ export interface Conversation {
   property_id: number
   guest_ref: string
   channel: string
+  handoff: boolean
+  assigned_to: number | null
 }
 
 export interface InboundResult {
