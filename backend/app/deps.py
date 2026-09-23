@@ -1,23 +1,40 @@
-"""Dependencias comunes (autenticación)."""
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+"""Dependencias comunes (autenticación).
+
+El token de acceso viaja preferentemente en una cookie httpOnly (resiste XSS),
+pero también se acepta en la cabecera `Authorization: Bearer` para API/curl/tests.
+"""
+from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
 from app.models import User
 from app.security import decode_token
 
-_bearer = HTTPBearer(auto_error=True)
+ACCESS_COOKIE = "access_token"
+
+
+def _token_from_request(request: Request) -> str | None:
+    auth = request.headers.get("Authorization")
+    if auth and auth.lower().startswith("bearer "):
+        return auth[7:].strip()
+    return request.cookies.get(ACCESS_COOKIE)
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(_bearer),
+    request: Request,
     session: AsyncSession = Depends(get_session),
 ) -> User:
-    subject = decode_token(credentials.credentials)
-    if subject is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido")
-    user = await session.get(User, int(subject))
-    if user is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Usuario no encontrado")
+    token = _token_from_request(request)
+    unauthorized = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED, detail="No autenticado"
+    )
+    if not token:
+        raise unauthorized
+    payload = decode_token(token, expected_type="access")
+    if payload is None:
+        raise unauthorized
+    user = await session.get(User, int(payload["sub"]))
+    if user is None or payload.get("tv") != user.token_version:
+        # Usuario inexistente o token revocado (token_version incrementado).
+        raise unauthorized
     return user

@@ -1,13 +1,13 @@
 """Esquemas Pydantic (entrada/salida de la API)."""
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class UserCreate(BaseModel):
     email: EmailStr
-    name: str
-    password: str
+    name: str = Field(min_length=1, max_length=120)
+    password: str = Field(min_length=8, max_length=128)
 
 
 class UserOut(BaseModel):
@@ -28,7 +28,7 @@ class TokenOut(BaseModel):
 
 
 class BuildingCreate(BaseModel):
-    name: str
+    name: str = Field(min_length=1, max_length=120)
 
 
 class BuildingOut(BaseModel):
@@ -38,11 +38,11 @@ class BuildingOut(BaseModel):
 
 
 class PropertyCreate(BaseModel):
-    name: str
-    address: str | None = None
-    default_language: str = "es"
+    name: str = Field(min_length=1, max_length=120)
+    address: str | None = Field(default=None, max_length=500)
+    default_language: str = Field(default="es", max_length=8)
     auto_answer: bool = True
-    whatsapp_phone_number_id: str | None = None
+    whatsapp_phone_number_id: str | None = Field(default=None, max_length=64)
     building_id: int | None = None
 
 
@@ -58,8 +58,13 @@ class PropertyOut(BaseModel):
 
 
 class KnowledgeCreate(BaseModel):
-    category: str = "general"
-    content: str
+    category: str = Field(default="general", max_length=64)
+    content: str = Field(min_length=1, max_length=4000)
+
+
+class KnowledgeUpdate(BaseModel):
+    category: str | None = Field(default=None, max_length=64)
+    content: str | None = Field(default=None, min_length=1, max_length=4000)
 
 
 class KnowledgeOut(BaseModel):
@@ -71,8 +76,8 @@ class KnowledgeOut(BaseModel):
 
 class InboundMessage(BaseModel):
     property_id: int
-    guest_ref: str
-    text: str
+    guest_ref: str = Field(min_length=1, max_length=64)
+    text: str = Field(min_length=1, max_length=2000)
 
 
 class MessageOut(BaseModel):
@@ -111,7 +116,7 @@ class InboundResult(BaseModel):
 
 
 class ApproveRequest(BaseModel):
-    edited_text: str | None = None
+    edited_text: str | None = Field(default=None, max_length=4000)
     save_to_knowledge: bool = False  # guardar la respuesta en la ficha del piso
 
 
@@ -125,6 +130,12 @@ class InboxItem(BaseModel):
     property_name: str
 
 
+class MetricsPoint(BaseModel):
+    date: str  # YYYY-MM-DD
+    auto_answered: int
+    escalated: int
+
+
 class MetricsOut(BaseModel):
     properties: int
     conversations: int
@@ -135,3 +146,24 @@ class MetricsOut(BaseModel):
     pending: int
     auto_rate: float  # 0..1
     minutes_saved: int
+    daily: list[MetricsPoint] = []  # últimos días (tendencia)
+
+
+class NotificationOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    kind: str
+    message: str
+    read: bool
+    conversation_id: int | None
+    created_at: datetime
+
+
+class AuditLogOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    actor: str
+    action: str
+    detail: str | None
+    conversation_id: int | None
+    created_at: datetime

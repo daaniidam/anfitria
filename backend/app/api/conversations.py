@@ -1,11 +1,12 @@
 """Conversaciones, entrada del canal simulado, cola de borradores y aprobación."""
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
 from app.deps import get_current_user
 from app.models import Conversation, Draft, Message, Property, User
+from app.ratelimit import limiter
 from app.schemas import (
     ApproveRequest,
     ConversationOut,
@@ -21,7 +22,9 @@ from app.services.drafts import approve_draft
 router = APIRouter(tags=["conversations"])
 
 
-async def _owned_conversation(session: AsyncSession, conversation_id: int, user: User) -> Conversation:
+async def _owned_conversation(
+    session: AsyncSession, conversation_id: int, user: User
+) -> Conversation:
     conversation = await session.get(Conversation, conversation_id)
     if conversation is None:
         raise HTTPException(status_code=404, detail="Conversación no encontrada")
@@ -36,7 +39,9 @@ async def _owned_conversation(session: AsyncSession, conversation_id: int, user:
     response_model=InboundResult,
     status_code=status.HTTP_201_CREATED,
 )
+@limiter.limit("60/minute")
 async def sim_inbound(
+    request: Request,
     data: InboundMessage,
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
@@ -55,6 +60,8 @@ async def sim_inbound(
 
 @router.get("/conversations", response_model=list[ConversationOut])
 async def list_conversations(
+    limit: int = Query(default=100, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> list[Conversation]:
@@ -62,7 +69,9 @@ async def list_conversations(
         select(Conversation)
         .join(Property, Conversation.property_id == Property.id)
         .where(Property.owner_id == user.id)
-        .order_by(Conversation.id)
+        .order_by(Conversation.id.desc())
+        .limit(limit)
+        .offset(offset)
     )
     return list(result.scalars().all())
 
@@ -70,18 +79,26 @@ async def list_conversations(
 @router.get("/conversations/{conversation_id}/messages", response_model=list[MessageOut])
 async def conversation_messages(
     conversation_id: int,
+    limit: int = Query(default=200, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> list[Message]:
     await _owned_conversation(session, conversation_id, user)
     result = await session.execute(
-        select(Message).where(Message.conversation_id == conversation_id).order_by(Message.id)
+        select(Message)
+        .where(Message.conversation_id == conversation_id)
+        .order_by(Message.id)
+        .limit(limit)
+        .offset(offset)
     )
     return list(result.scalars().all())
 
 
 @router.get("/inbox", response_model=list[InboxItem])
 async def inbox(
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> list[InboxItem]:
@@ -99,6 +116,8 @@ async def inbox(
         .join(Property, Conversation.property_id == Property.id)
         .where(Property.owner_id == user.id, Draft.status == "pending")
         .order_by(Draft.id.desc())
+        .limit(limit)
+        .offset(offset)
     )
     return [
         InboxItem(
@@ -109,13 +128,17 @@ async def inbox(
             property_id=property_id,
             property_name=property_name,
         )
-        for draft, inbound_text, conversation_id, guest_ref, property_id, property_name in result.all()
+        for draft, inbound_text, conversation_id, guest_ref, property_id, property_name in (
+            result.all()
+        )
     ]
 
 
 @router.get("/drafts", response_model=list[DraftOut])
 async def list_drafts(
     status: str = "pending",
+    limit: int = Query(default=100, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> list[Draft]:
@@ -125,7 +148,9 @@ async def list_drafts(
         .join(Conversation, Message.conversation_id == Conversation.id)
         .join(Property, Conversation.property_id == Property.id)
         .where(Property.owner_id == user.id, Draft.status == status)
-        .order_by(Draft.id)
+        .order_by(Draft.id.desc())
+        .limit(limit)
+        .offset(offset)
     )
     return list(result.scalars().all())
 

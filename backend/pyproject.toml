@@ -19,6 +19,7 @@ dependencies = [
     "pyjwt>=2.10",
     "email-validator>=2.2",
     "pgvector>=0.3.6",
+    "slowapi>=0.1.9",
 ]
 
 [dependency-groups]
@@ -39,6 +40,12 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
+# B008: llamadas en argumentos por defecto — es el idioma de FastAPI (Depends/Query).
+ignore = ["B008"]
+
+[tool.ruff.lint.per-file-ignores]
+# Los tests usan literales largos (payloads, cabeceras) donde partir la línea resta claridad.
+"tests/*" = ["E501"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

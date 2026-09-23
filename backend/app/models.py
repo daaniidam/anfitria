@@ -1,7 +1,7 @@
 """Modelos de dominio de AnfitrIA."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import DateTime, Float, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -11,7 +11,7 @@ from app.db_types import Embedding
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class User(Base):
@@ -21,6 +21,8 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     name: Mapped[str] = mapped_column(String(255))
     password_hash: Mapped[str] = mapped_column(String(255))
+    # Se incrementa al cerrar sesión en todos los dispositivos: invalida los JWT previos.
+    token_version: Mapped[int] = mapped_column(default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     properties: Mapped[list[Property]] = relationship(back_populates="owner")
@@ -56,7 +58,9 @@ class Property(Base):
     # Si True, la IA responde sola cuando tiene confianza; si no, escala al anfitrión.
     auto_answer: Mapped[bool] = mapped_column(default=True)
     # Número de WhatsApp (phone_number_id de Meta) asignado a este piso, para enrutar la entrada.
-    whatsapp_phone_number_id: Mapped[str | None] = mapped_column(String(64), default=None, index=True)
+    whatsapp_phone_number_id: Mapped[str | None] = mapped_column(
+        String(64), default=None, index=True
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     owner: Mapped[User] = relationship(back_populates="properties")
@@ -115,6 +119,11 @@ class Message(Base):
     direction: Mapped[str] = mapped_column(String(8))  # "in" | "out"
     text: Mapped[str] = mapped_column(Text)
     language: Mapped[str] = mapped_column(String(8), default="es")
+    # ID externo del canal (p. ej. el message id de WhatsApp). Único: sirve para
+    # descartar reintentos del webhook y no procesar dos veces el mismo mensaje.
+    external_id: Mapped[str | None] = mapped_column(
+        String(128), default=None, unique=True, index=True
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     conversation: Mapped[Conversation] = relationship(back_populates="messages")
@@ -134,7 +143,8 @@ class Draft(Base):
     language: Mapped[str] = mapped_column(String(8), default="es")
     confidence: Mapped[float] = mapped_column(Float, default=0.0)
     model: Mapped[str] = mapped_column(String(64), default="mock")
-    status: Mapped[str] = mapped_column(String(16), default="pending")  # pending|approved|edited|sent
+    # pending | approved | edited | sent
+    status: Mapped[str] = mapped_column(String(16), default="pending")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     inbound_message: Mapped[Message] = relationship(back_populates="draft")
@@ -150,4 +160,23 @@ class AuditLog(Base):
     conversation_id: Mapped[int | None] = mapped_column(
         ForeignKey("conversations.id"), default=None, index=True
     )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class Notification(Base):
+    """Aviso para el anfitrión (p. ej. una escalada que requiere su respuesta).
+
+    Permite alertar cuando algo se escala aunque no esté mirando el panel.
+    """
+
+    __tablename__ = "notifications"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    conversation_id: Mapped[int | None] = mapped_column(
+        ForeignKey("conversations.id"), default=None, index=True
+    )
+    kind: Mapped[str] = mapped_column(String(32), default="escalation")
+    message: Mapped[str] = mapped_column(Text)
+    read: Mapped[bool] = mapped_column(default=False, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)

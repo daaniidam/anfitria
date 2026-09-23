@@ -23,11 +23,16 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def init_db() -> None:
-    """Habilita pgvector (en Postgres) y crea las tablas si no existen.
+    """Prepara el esquema al arrancar.
 
-    Suficiente para el MVP; las migraciones (Alembic) quedan como mejora futura.
+    En desarrollo crea las tablas al vuelo (`create_all`) para arrancar sin pasos
+    extra. En producción NO toca el esquema: se gestiona con Alembic
+    (`alembic upgrade head`), la fuente de verdad de las migraciones.
     """
     from app import models  # noqa: F401  (registra los modelos en el metadata)
+
+    if _settings.environment == "production":
+        return
 
     async with engine.begin() as conn:
         if engine.dialect.name == "postgresql":

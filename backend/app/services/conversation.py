@@ -12,9 +12,16 @@ from app.adapters.ai.mock import detect_language
 from app.adapters.channel.factory import get_channel
 from app.adapters.embeddings.factory import get_embedding_provider
 from app.config import get_settings
-from app.models import AuditLog, Conversation, Draft, KnowledgeItem, Message, Property
+from app.models import (
+    AuditLog,
+    Conversation,
+    Draft,
+    KnowledgeItem,
+    Message,
+    Notification,
+    Property,
+)
 from app.services.retrieval import retrieve, scope_clause
-
 
 # Mensaje de espera que recibe el huésped al instante cuando se escala al anfitrión.
 HOLDING = {
@@ -29,6 +36,12 @@ class InboundOutcome:
     inbound: Message
     draft: Draft
     answered: bool
+    duplicate: bool = False  # True si el mensaje ya se había procesado (reintento del webhook)
+
+
+async def _find_by_external_id(session: AsyncSession, external_id: str) -> Message | None:
+    result = await session.execute(select(Message).where(Message.external_id == external_id))
+    return result.scalar_one_or_none()
 
 
 async def _get_or_create_conversation(
@@ -50,9 +63,28 @@ async def _get_or_create_conversation(
 
 
 async def handle_inbound(
-    session: AsyncSession, property: Property, guest_ref: str, text: str
+    session: AsyncSession,
+    property: Property,
+    guest_ref: str,
+    text: str,
+    external_id: str | None = None,
 ) -> InboundOutcome:
     settings = get_settings()
+
+    # Idempotencia: si este mensaje del canal ya se procesó (reintento del webhook),
+    # no lo procesamos de nuevo — evita responder dos veces al huésped.
+    if external_id is not None:
+        existing = await _find_by_external_id(session, external_id)
+        if existing is not None:
+            conversation = await session.get(Conversation, existing.conversation_id)
+            return InboundOutcome(
+                conversation=conversation,
+                inbound=existing,
+                draft=existing.draft,
+                answered=False,
+                duplicate=True,
+            )
+
     conversation = await _get_or_create_conversation(session, property.id, guest_ref)
 
     inbound = Message(
@@ -60,6 +92,7 @@ async def handle_inbound(
         direction="in",
         text=text,
         language=detect_language(text, property.default_language),
+        external_id=external_id,
     )
     session.add(inbound)
     await session.flush()
@@ -142,6 +175,16 @@ async def handle_inbound(
         # El borrador queda "pending": es la escalada para el anfitrión.
         session.add(
             AuditLog(actor="ai", action="escalated", conversation_id=conversation.id)
+        )
+        # Aviso al anfitrión para que no dependa de estar mirando el panel.
+        preview = text if len(text) <= 80 else text[:77] + "…"
+        session.add(
+            Notification(
+                owner_id=property.owner_id,
+                conversation_id=conversation.id,
+                kind="escalation",
+                message=f'{property.name}: "{preview}"',
+            )
         )
 
     await session.commit()

@@ -41,7 +41,7 @@ async def approve_draft(
     # Aprender: guardar la respuesta como conocimiento del piso para futuras dudas idénticas.
     if save_to_knowledge and question:
         embedder = get_embedding_provider()
-        # Se indexa con la pregunta + la respuesta para que la próxima pregunta similar la encuentre.
+        # Se indexa con pregunta + respuesta para que la próxima duda similar la encuentre.
         embedding = embedder.embed([f"{question}\n{text}"])[0]
         session.add(
             KnowledgeItem(

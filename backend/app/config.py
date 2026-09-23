@@ -16,7 +16,18 @@ class Settings(BaseSettings):
     # Seguridad / JWT (cambiar secret_key en producción vía entorno)
     secret_key: str = "dev-insecure-change-me-in-production-please-32b+"
     jwt_algorithm: str = "HS256"
-    access_token_expire_minutes: int = 60 * 24
+    access_token_expire_minutes: int = 30
+    refresh_token_expire_minutes: int = 60 * 24 * 14  # 14 días
+    # El token va en cookie httpOnly (no accesible por JS → resiste XSS).
+    cookie_secure: bool = False  # True en producción (HTTPS)
+    cookie_samesite: str = "lax"
+
+    # Límite de peticiones (fuerza bruta / spam). Se desactiva en los tests.
+    rate_limit_enabled: bool = True
+
+    # Si True, el webhook de WhatsApp encola el trabajo pesado (IA) en el worker
+    # ARQ y responde al instante; si False, procesa en línea (demo/tests).
+    process_async: bool = False
 
     # Umbral de confianza (0-1) para que la IA responda sola. Por debajo, escala
     # al anfitrión (y el huésped recibe igual un mensaje de espera inmediato).

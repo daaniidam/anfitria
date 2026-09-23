@@ -1,5 +1,5 @@
 """Pisos y su ficha de conocimiento."""
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -7,7 +7,13 @@ from app.adapters.embeddings.factory import get_embedding_provider
 from app.db import get_session
 from app.deps import get_current_user
 from app.models import KnowledgeItem, Property, User
-from app.schemas import KnowledgeCreate, KnowledgeOut, PropertyCreate, PropertyOut
+from app.schemas import (
+    KnowledgeCreate,
+    KnowledgeOut,
+    KnowledgeUpdate,
+    PropertyCreate,
+    PropertyOut,
+)
 
 router = APIRouter(tags=["properties"])
 
@@ -17,6 +23,16 @@ async def get_owned_property(session: AsyncSession, property_id: int, user: User
     if prop is None or prop.owner_id != user.id:
         raise HTTPException(status_code=404, detail="Piso no encontrado")
     return prop
+
+
+async def _owned_property_knowledge(
+    session: AsyncSession, property_id: int, item_id: int, user: User
+) -> KnowledgeItem:
+    await get_owned_property(session, property_id, user)
+    item = await session.get(KnowledgeItem, item_id)
+    if item is None or item.property_id != property_id:
+        raise HTTPException(status_code=404, detail="Información no encontrada")
+    return item
 
 
 @router.post("/properties", response_model=PropertyOut, status_code=status.HTTP_201_CREATED)
@@ -46,13 +62,30 @@ async def create_property(
 
 @router.get("/properties", response_model=list[PropertyOut])
 async def list_properties(
+    limit: int = Query(default=100, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> list[Property]:
     result = await session.execute(
-        select(Property).where(Property.owner_id == user.id).order_by(Property.id)
+        select(Property)
+        .where(Property.owner_id == user.id)
+        .order_by(Property.id)
+        .limit(limit)
+        .offset(offset)
     )
     return list(result.scalars().all())
+
+
+@router.delete("/properties/{property_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_property(
+    property_id: int,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> None:
+    prop = await get_owned_property(session, property_id, user)
+    await session.delete(prop)
+    await session.commit()
 
 
 @router.post(
@@ -93,3 +126,38 @@ async def list_knowledge(
         .order_by(KnowledgeItem.id)
     )
     return list(result.scalars().all())
+
+
+@router.patch(
+    "/properties/{property_id}/knowledge/{item_id}", response_model=KnowledgeOut
+)
+async def update_knowledge(
+    property_id: int,
+    item_id: int,
+    data: KnowledgeUpdate,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> KnowledgeItem:
+    item = await _owned_property_knowledge(session, property_id, item_id, user)
+    if data.category is not None:
+        item.category = data.category
+    if data.content is not None and data.content != item.content:
+        item.content = data.content
+        item.embedding = get_embedding_provider().embed([data.content])[0]
+    await session.commit()
+    await session.refresh(item)
+    return item
+
+
+@router.delete(
+    "/properties/{property_id}/knowledge/{item_id}", status_code=status.HTTP_204_NO_CONTENT
+)
+async def delete_knowledge(
+    property_id: int,
+    item_id: int,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> None:
+    item = await _owned_property_knowledge(session, property_id, item_id, user)
+    await session.delete(item)
+    await session.commit()

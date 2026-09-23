@@ -14,7 +14,7 @@ RETRIEVAL_THRESHOLD = 0.25
 
 
 def _cosine(a: list[float], b: list[float]) -> float:
-    return sum(x * y for x, y in zip(a, b))
+    return sum(x * y for x, y in zip(a, b, strict=False))
 
 
 def scope_clause(property_id: int, building_id: int | None):

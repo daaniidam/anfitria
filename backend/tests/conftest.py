@@ -8,6 +8,9 @@ import app.models  # noqa: F401  (registra los modelos en el metadata)
 from app.db import Base, get_session
 from app.main import app
 
+# En los tests no queremos límite de peticiones (muchos logins seguidos).
+app.state.limiter.enabled = False
+
 
 @pytest_asyncio.fixture
 async def client():

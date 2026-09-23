@@ -13,7 +13,7 @@ from app.adapters.embeddings.base import EMBEDDING_DIM, EmbeddingProvider
 _WORD = re.compile(r"[a-z0-9áéíóúüñ]+", re.IGNORECASE)
 _STOP = {
     "los", "las", "una", "uno", "del", "que", "por", "para", "con",
-    "las", "sus", "mis", "tus", "está", "esta", "este", "como", "cerca",
+    "sus", "mis", "tus", "está", "esta", "este", "como", "cerca",
     "the", "and", "for", "with", "you", "your",
 }
 

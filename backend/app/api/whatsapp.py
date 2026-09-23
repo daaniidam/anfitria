@@ -4,14 +4,15 @@ GET  /channels/whatsapp/webhook  -> verificación del webhook (hub.challenge).
 POST /channels/whatsapp/webhook  -> mensajes entrantes; valida la firma HMAC,
      enruta al piso por su phone_number_id y lanza el flujo de conserje.
 
-En producción, el procesamiento pesado (IA) se movería al worker (ARQ) para
-responder al webhook al instante; aquí se hace en línea por simplicidad.
+Con `PROCESS_ASYNC=true` el trabajo pesado (IA) se encola en el worker (ARQ) y se
+responde a Meta al instante; con `false` se procesa en línea (demo/tests).
 """
 from __future__ import annotations
 
 import hashlib
 import hmac
 import json
+import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from sqlalchemy import select
@@ -19,8 +20,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
 from app.db import get_session
-from app.models import Property
+from app.models import Message, Property
 from app.services.conversation import handle_inbound
+
+logger = logging.getLogger("anfitria.whatsapp")
 
 router = APIRouter(prefix="/channels/whatsapp", tags=["whatsapp"])
 
@@ -75,10 +78,31 @@ async def receive_webhook(
                 continue  # número no asignado a ningún piso
             for message in value.get("messages", []):
                 if message.get("type") != "text":
+                    # Por ahora solo texto; otros tipos (imagen/audio/ubicación) se ignoran.
                     continue
                 sender = message.get("from")
                 text = (message.get("text") or {}).get("body")
-                if sender and text:
-                    await handle_inbound(session, property, sender, text)
+                external_id = message.get("id")
+                if not (sender and text):
+                    continue
+
+                # Dedup temprano: si ya procesamos este message id, descartar el reintento.
+                if external_id is not None:
+                    seen = await session.execute(
+                        select(Message.id).where(Message.external_id == external_id)
+                    )
+                    if seen.scalar_one_or_none() is not None:
+                        continue
+
+                if settings.process_async:
+                    # Encolar y responder al instante; si Redis no está, procesar en línea.
+                    try:
+                        from app.queue import enqueue_inbound
+
+                        await enqueue_inbound(property.id, sender, text, external_id)
+                        continue
+                    except Exception:  # pragma: no cover - fallback si la cola no está
+                        logger.warning("No se pudo encolar; se procesa en línea", exc_info=True)
+                await handle_inbound(session, property, sender, text, external_id=external_id)
 
     return {"status": "ok"}

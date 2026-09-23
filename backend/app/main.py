@@ -3,10 +3,22 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 
-from app.api import auth, buildings, conversations, metrics, properties, whatsapp
+from app.api import (
+    audit,
+    auth,
+    buildings,
+    conversations,
+    metrics,
+    notifications,
+    properties,
+    whatsapp,
+)
 from app.config import get_settings
 from app.db import init_db
+from app.ratelimit import limiter
 
 
 @asynccontextmanager
@@ -15,9 +27,23 @@ async def lifespan(app: FastAPI):
     yield
 
 
+def _rate_limit_handler(request, exc):  # noqa: ANN001
+    from fastapi.responses import JSONResponse
+
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "Demasiadas peticiones, prueba de nuevo en un momento."},
+    )
+
+
 def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(title=settings.app_name, version="0.1.0", lifespan=lifespan)
+
+    # Rate limiting (fuerza bruta / spam).
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_handler)
+    app.add_middleware(SlowAPIMiddleware)
 
     app.add_middleware(
         CORSMiddleware,
@@ -43,6 +69,8 @@ def create_app() -> FastAPI:
     app.include_router(conversations.router)
     app.include_router(whatsapp.router)
     app.include_router(metrics.router)
+    app.include_router(notifications.router)
+    app.include_router(audit.router)
     return app
 
 

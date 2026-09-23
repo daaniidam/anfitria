@@ -1,4 +1,7 @@
 """Métricas agregadas del anfitrión."""
+from collections import defaultdict
+from datetime import UTC, datetime, timedelta
+
 from fastapi import APIRouter, Depends
 from sqlalchemy import Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,11 +9,38 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import get_session
 from app.deps import get_current_user
 from app.models import AuditLog, Conversation, Draft, Message, Property, User
-from app.schemas import MetricsOut
+from app.schemas import MetricsOut, MetricsPoint
 
 router = APIRouter(tags=["metrics"])
 
 MINUTES_SAVED_PER_ANSWER = 3
+TREND_DAYS = 14
+
+
+async def _daily_series(session: AsyncSession, prop_ids: Select) -> list[MetricsPoint]:
+    """Auto-resueltas vs escaladas por día (últimos TREND_DAYS), agregado en Python."""
+    since = datetime.now(UTC) - timedelta(days=TREND_DAYS - 1)
+    rows = await session.execute(
+        select(AuditLog.action, AuditLog.created_at)
+        .join(Conversation, AuditLog.conversation_id == Conversation.id)
+        .where(
+            Conversation.property_id.in_(prop_ids),
+            AuditLog.action.in_(["auto_answered", "escalated"]),
+            AuditLog.created_at >= since,
+        )
+    )
+    buckets: dict[str, dict[str, int]] = defaultdict(lambda: {"auto": 0, "esc": 0})
+    for action, created_at in rows.all():
+        day = created_at.date().isoformat()
+        buckets[day]["auto" if action == "auto_answered" else "esc"] += 1
+
+    series: list[MetricsPoint] = []
+    start = since.date()
+    for i in range(TREND_DAYS):
+        day = (start + timedelta(days=i)).isoformat()
+        b = buckets.get(day, {"auto": 0, "esc": 0})
+        series.append(MetricsPoint(date=day, auto_answered=b["auto"], escalated=b["esc"]))
+    return series
 
 
 async def _count(session: AsyncSession, stmt: Select) -> int:
@@ -62,6 +92,7 @@ async def metrics(
 
     handled = auto_answered + escalated
     auto_rate = round(auto_answered / handled, 3) if handled else 0.0
+    daily = await _daily_series(session, prop_ids)
     return MetricsOut(
         properties=properties,
         conversations=conversations,
@@ -72,4 +103,5 @@ async def metrics(
         pending=pending,
         auto_rate=auto_rate,
         minutes_saved=auto_answered * MINUTES_SAVED_PER_ANSWER,
+        daily=daily,
     )
