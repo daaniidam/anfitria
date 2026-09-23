@@ -11,7 +11,7 @@ import type {
   Property,
   User,
 } from '../types'
-import { api } from './client'
+import { api, apiUpload } from './client'
 
 export const BuildingsApi = {
   list: () => api<Building[]>('/buildings'),
@@ -64,6 +64,8 @@ export const PropertiesApi = {
     api<KnowledgeItem[]>(`/properties/${propertyId}/knowledge`),
   addKnowledge: (propertyId: number, body: { category: string; content: string }) =>
     api<KnowledgeItem>(`/properties/${propertyId}/knowledge`, { method: 'POST', body }),
+  importKnowledge: (propertyId: number, file: File) =>
+    apiUpload<{ imported: number }>(`/properties/${propertyId}/knowledge/import`, file),
   updateKnowledge: (
     propertyId: number,
     itemId: number,

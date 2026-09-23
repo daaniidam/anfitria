@@ -1,5 +1,5 @@
 """Pisos y su ficha de conocimiento."""
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,11 +9,15 @@ from app.deps import get_current_user
 from app.models import KnowledgeItem, Property, User
 from app.schemas import (
     KnowledgeCreate,
+    KnowledgeImportOut,
     KnowledgeOut,
     KnowledgeUpdate,
     PropertyCreate,
     PropertyOut,
 )
+from app.services.import_knowledge import parse_upload
+
+MAX_IMPORT_BYTES = 5_000_000  # 5 MB
 
 router = APIRouter(tags=["properties"])
 
@@ -111,6 +115,43 @@ async def add_knowledge(
     await session.commit()
     await session.refresh(item)
     return item
+
+
+@router.post(
+    "/properties/{property_id}/knowledge/import",
+    response_model=KnowledgeImportOut,
+    status_code=status.HTTP_201_CREATED,
+)
+async def import_knowledge(
+    property_id: int,
+    file: UploadFile = File(...),
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> KnowledgeImportOut:
+    """Importa la ficha desde un CSV (categoría, contenido) o un PDF (se trocea)."""
+    await get_owned_property(session, property_id, user)
+    data = await file.read()
+    if len(data) > MAX_IMPORT_BYTES:
+        raise HTTPException(status_code=413, detail="El fichero es demasiado grande (máx. 5 MB)")
+    try:
+        pairs = parse_upload(file.filename or "", file.content_type, data)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if not pairs:
+        raise HTTPException(status_code=400, detail="No se encontró contenido para importar")
+
+    embeddings = get_embedding_provider().embed([content for _, content in pairs])
+    for (category, content), embedding in zip(pairs, embeddings, strict=True):
+        session.add(
+            KnowledgeItem(
+                property_id=property_id,
+                category=category,
+                content=content,
+                embedding=embedding,
+            )
+        )
+    await session.commit()
+    return KnowledgeImportOut(imported=len(pairs))
 
 
 @router.get("/properties/{property_id}/knowledge", response_model=list[KnowledgeOut])

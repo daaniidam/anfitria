@@ -52,3 +52,31 @@ export async function api<T>(path: string, options: Options = {}): Promise<T> {
   if (response.status === 204) return undefined as T
   return (await response.json()) as T
 }
+
+/** Sube un fichero (multipart) con la cookie de sesión y el token CSRF. */
+export async function apiUpload<T>(path: string, file: File): Promise<T> {
+  const form = new FormData()
+  form.append('file', file)
+  const headers: Record<string, string> = {}
+  const csrf = readCookie('csrf_token')
+  if (csrf) headers['X-CSRF-Token'] = csrf
+
+  const response = await fetch(`${BASE}${path}`, {
+    method: 'POST',
+    headers,
+    credentials: 'include',
+    body: form,
+  })
+
+  if (!response.ok) {
+    let detail = response.statusText
+    try {
+      const data = (await response.json()) as { detail?: string }
+      if (typeof data.detail === 'string') detail = data.detail
+    } catch {
+      /* respuesta sin cuerpo JSON */
+    }
+    throw new ApiError(response.status, detail)
+  }
+  return (await response.json()) as T
+}

@@ -74,6 +74,10 @@ class KnowledgeOut(BaseModel):
     content: str
 
 
+class KnowledgeImportOut(BaseModel):
+    imported: int  # nº de fragmentos añadidos a la ficha
+
+
 class InboundMessage(BaseModel):
     property_id: int
     guest_ref: str = Field(min_length=1, max_length=64)

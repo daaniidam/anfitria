@@ -16,6 +16,7 @@ el anfitrión **aprueba, edita o envía** desde un panel, con registro de todo.
 ## API (Fase 2)
 - `POST /auth/register` · `POST /auth/login` · `GET /auth/me`
 - `POST /properties` · `GET /properties` · `POST/GET /properties/{id}/knowledge`
+- `POST /properties/{id}/knowledge/import` — sube un CSV o PDF y crea la ficha de golpe
 - `POST /channels/sim/inbound` — simula un mensaje de huésped → la IA **responde sola** si tiene confianza; si no, envía aviso de espera y **escala**
 - `GET /conversations` · `GET /conversations/{id}/messages`
 - `GET /inbox` — escaladas pendientes (enriquecidas) · `POST /drafts/{id}/approve` — responder al huésped (con `edited_text` opcional)
@@ -51,6 +52,12 @@ la IA responde sola:
 parking, zonas comunes) con todos ellos de una vez:
 
 ![Edificios](docs/img/edificios.jpg)
+
+**Importar la ficha (CSV/PDF)** — un gestor con muchos pisos no teclea a mano:
+sube un CSV (categoría, contenido) o el PDF del manual del piso y se trocea e
+indexa automáticamente.
+
+![Importar conocimiento](docs/img/importar.jpg)
 
 **Auditoría** — trazabilidad completa: qué decidió la IA y qué hizo el
 anfitrión, con la hora. *IA supervisada, no caja negra.*

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { BuildingsApi, PropertiesApi } from '../api/endpoints'
@@ -160,6 +160,12 @@ function KnowledgePanel({ property }: { property: Property }) {
     },
   })
 
+  const fileRef = useRef<HTMLInputElement>(null)
+  const importFile = useMutation({
+    mutationFn: (file: File) => PropertiesApi.importKnowledge(property.id, file),
+    onSuccess: () => invalidate(),
+  })
+
   return (
     <div className="flex flex-col gap-4">
       <header>
@@ -190,14 +196,44 @@ function KnowledgePanel({ property }: { property: Property }) {
             value={content}
             onChange={(e) => setContent(e.target.value)}
           />
-          <Button
-            variant="brand"
-            className="self-start"
-            disabled={add.isPending || content.trim().length === 0}
-            onClick={() => add.mutate()}
-          >
-            {add.isPending ? 'Guardando…' : 'Añadir a la ficha'}
-          </Button>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              variant="brand"
+              disabled={add.isPending || content.trim().length === 0}
+              onClick={() => add.mutate()}
+            >
+              {add.isPending ? 'Guardando…' : 'Añadir a la ficha'}
+            </Button>
+            <span className="text-xs text-muted">o</span>
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".csv,.pdf,text/csv,application/pdf"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) importFile.mutate(file)
+                e.target.value = ''
+              }}
+            />
+            <Button
+              variant="ghost"
+              disabled={importFile.isPending}
+              onClick={() => fileRef.current?.click()}
+            >
+              {importFile.isPending ? 'Importando…' : 'Importar CSV / PDF'}
+            </Button>
+          </div>
+          {importFile.isSuccess ? (
+            <p className="text-xs text-brand-ink">
+              Importados {importFile.data.imported} fragmentos a la ficha.
+            </p>
+          ) : null}
+          {importFile.isError ? (
+            <p className="text-xs text-warn">
+              {(importFile.error as Error).message || 'No se pudo importar el fichero.'}
+            </p>
+          ) : null}
         </div>
       </Card>
 
