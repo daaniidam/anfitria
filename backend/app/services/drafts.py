@@ -1,11 +1,35 @@
 """Servicio de aprobación de borradores (respuesta a escaladas)."""
 from __future__ import annotations
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.adapters.channel.factory import get_channel
 from app.adapters.embeddings.factory import get_embedding_provider
 from app.models import AuditLog, Conversation, Draft, KnowledgeItem, Message
+from app.services.retrieval import _cosine
+
+# Si lo aprendido se parece mucho a algo ya guardado, se actualiza en vez de duplicar.
+LEARN_DEDUP_THRESHOLD = 0.9
+
+
+async def _dedup_learned(
+    session: AsyncSession, property_id: int, embedding: list[float]
+) -> KnowledgeItem | None:
+    """Devuelve el conocimiento del piso casi idéntico (para actualizar en vez de duplicar)."""
+    rows = await session.execute(
+        select(KnowledgeItem).where(
+            KnowledgeItem.property_id == property_id,
+            KnowledgeItem.embedding.isnot(None),
+        )
+    )
+    best: KnowledgeItem | None = None
+    best_score = 0.0
+    for item in rows.scalars().all():
+        score = _cosine(embedding, item.embedding)
+        if score > best_score:
+            best, best_score = item, score
+    return best if best_score >= LEARN_DEDUP_THRESHOLD else None
 
 
 async def approve_draft(
@@ -43,14 +67,20 @@ async def approve_draft(
         embedder = get_embedding_provider()
         # Se indexa con pregunta + respuesta para que la próxima duda similar la encuentre.
         embedding = embedder.embed([f"{question}\n{text}"])[0]
-        session.add(
-            KnowledgeItem(
-                property_id=conversation.property_id,
-                category="aprendido",
-                content=text,
-                embedding=embedding,
+        existing = await _dedup_learned(session, conversation.property_id, embedding)
+        if existing is not None:
+            # Ya había algo casi idéntico: se actualiza en vez de acumular duplicados.
+            existing.content = text
+            existing.embedding = embedding
+        else:
+            session.add(
+                KnowledgeItem(
+                    property_id=conversation.property_id,
+                    category="aprendido",
+                    content=text,
+                    embedding=embedding,
+                )
             )
-        )
         session.add(
             AuditLog(actor="host", action="learned", conversation_id=conversation.id)
         )

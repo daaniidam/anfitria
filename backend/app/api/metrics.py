@@ -18,21 +18,27 @@ TREND_DAYS = 14
 
 
 async def _daily_series(session: AsyncSession, prop_ids: Select) -> list[MetricsPoint]:
-    """Auto-resueltas vs escaladas por día (últimos TREND_DAYS), agregado en Python."""
+    """Auto-resueltas vs escaladas por día (últimos TREND_DAYS).
+
+    La agregación se hace en la base de datos (GROUP BY día + acción); en Python
+    solo se rellenan los días sin actividad. `func.date` funciona en Postgres y SQLite.
+    """
     since = datetime.now(UTC) - timedelta(days=TREND_DAYS - 1)
+    day_col = func.date(AuditLog.created_at)
     rows = await session.execute(
-        select(AuditLog.action, AuditLog.created_at)
+        select(day_col.label("day"), AuditLog.action, func.count().label("n"))
         .join(Conversation, AuditLog.conversation_id == Conversation.id)
         .where(
             Conversation.property_id.in_(prop_ids),
             AuditLog.action.in_(["auto_answered", "escalated"]),
             AuditLog.created_at >= since,
         )
+        .group_by(day_col, AuditLog.action)
     )
     buckets: dict[str, dict[str, int]] = defaultdict(lambda: {"auto": 0, "esc": 0})
-    for action, created_at in rows.all():
-        day = created_at.date().isoformat()
-        buckets[day]["auto" if action == "auto_answered" else "esc"] += 1
+    for day, action, n in rows.all():
+        key = str(day)[:10]
+        buckets[key]["auto" if action == "auto_answered" else "esc"] += int(n)
 
     series: list[MetricsPoint] = []
     start = since.date()

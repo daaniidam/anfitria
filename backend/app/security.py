@@ -17,10 +17,14 @@ def verify_password(password: str, password_hash: str) -> bool:
     return _pwd.verify(password, password_hash)
 
 
-def _encode(subject: str, token_version: int, token_type: str, minutes: int) -> str:
+def _encode(
+    subject: str, token_version: int, token_type: str, minutes: int, jti: str | None = None
+) -> str:
     settings = get_settings()
     expire = datetime.now(UTC) + timedelta(minutes=minutes)
     payload = {"sub": subject, "tv": token_version, "type": token_type, "exp": expire}
+    if jti is not None:
+        payload["jti"] = jti
     return jwt.encode(payload, settings.secret_key, algorithm=settings.jwt_algorithm)
 
 
@@ -30,9 +34,9 @@ def create_access_token(subject: str, token_version: int = 0) -> str:
     )
 
 
-def create_refresh_token(subject: str, token_version: int = 0) -> str:
+def create_refresh_token(subject: str, token_version: int = 0, jti: str | None = None) -> str:
     return _encode(
-        subject, token_version, "refresh", get_settings().refresh_token_expire_minutes
+        subject, token_version, "refresh", get_settings().refresh_token_expire_minutes, jti=jti
     )
 
 

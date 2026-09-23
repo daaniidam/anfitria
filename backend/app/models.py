@@ -23,6 +23,8 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(255))
     # Se incrementa al cerrar sesión en todos los dispositivos: invalida los JWT previos.
     token_version: Mapped[int] = mapped_column(default=0)
+    # Identificador del último refresh token válido (rotación de un solo uso).
+    refresh_jti: Mapped[str | None] = mapped_column(String(64), default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     properties: Mapped[list[Property]] = relationship(back_populates="owner")

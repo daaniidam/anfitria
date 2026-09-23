@@ -36,6 +36,37 @@ def _rate_limit_handler(request, exc):  # noqa: ANN001
     )
 
 
+# Rutas exentas de CSRF: no hay sesión aún (login/registro/refresh) o usan otra
+# verificación (webhook de WhatsApp con firma HMAC).
+_CSRF_EXEMPT = ("/auth/login", "/auth/register", "/auth/refresh", "/channels/whatsapp/webhook")
+_SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
+
+
+async def _csrf_middleware(request, call_next):  # noqa: ANN001
+    """Protección CSRF double-submit para mutaciones autenticadas por cookie.
+
+    Si la petición trae `Authorization: Bearer` (API/curl) no hay riesgo CSRF y se
+    omite. Para el flujo por cookie, exige que la cabecera X-CSRF-Token coincida con
+    la cookie csrf_token.
+    """
+    from fastapi.responses import JSONResponse
+
+    from app.deps import ACCESS_COOKIE, CSRF_COOKIE
+
+    if (
+        request.method not in _SAFE_METHODS
+        and not request.url.path.startswith(_CSRF_EXEMPT)
+        and request.headers.get("Authorization") is None
+        and request.cookies.get(ACCESS_COOKIE) is not None
+    ):
+        cookie_token = request.cookies.get(CSRF_COOKIE)
+        header_token = request.headers.get("X-CSRF-Token")
+        if not cookie_token or cookie_token != header_token:
+            return JSONResponse(status_code=403, content={"detail": "CSRF token inválido"})
+
+    return await call_next(request)
+
+
 def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(title=settings.app_name, version="0.1.0", lifespan=lifespan)
@@ -44,6 +75,8 @@ def create_app() -> FastAPI:
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_handler)
     app.add_middleware(SlowAPIMiddleware)
+
+    app.middleware("http")(_csrf_middleware)
 
     app.add_middleware(
         CORSMiddleware,

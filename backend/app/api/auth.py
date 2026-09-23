@@ -1,11 +1,13 @@
-"""Autenticación del anfitrión (cookies httpOnly + refresco + revocación)."""
+"""Autenticación del anfitrión (cookies httpOnly + refresco rotatorio + CSRF)."""
+import secrets
+
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
 from app.db import get_session
-from app.deps import ACCESS_COOKIE, get_current_user
+from app.deps import ACCESS_COOKIE, CSRF_COOKIE, get_current_user
 from app.models import User
 from app.ratelimit import limiter
 from app.schemas import LoginRequest, TokenOut, UserCreate, UserOut
@@ -22,17 +24,31 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 REFRESH_COOKIE = "refresh_token"
 
 
-def _set_auth_cookies(response: Response, user: User) -> str:
-    """Emite access + refresh en cookies httpOnly y devuelve el access token."""
+async def _issue_session(response: Response, user: User, session: AsyncSession) -> str:
+    """Emite access + refresh (rotatorio) + CSRF en cookies y devuelve el access token."""
     settings = get_settings()
+    jti = secrets.token_urlsafe(16)
+    user.refresh_jti = jti
+    await session.commit()
+
     access = create_access_token(str(user.id), user.token_version)
-    refresh = create_refresh_token(str(user.id), user.token_version)
-    common = dict(httponly=True, secure=settings.cookie_secure, samesite=settings.cookie_samesite)
+    refresh = create_refresh_token(str(user.id), user.token_version, jti=jti)
+    csrf = secrets.token_urlsafe(24)
+    secure = settings.cookie_secure
+    samesite = settings.cookie_samesite
     response.set_cookie(
-        ACCESS_COOKIE, access, max_age=settings.access_token_expire_minutes * 60, **common
+        ACCESS_COOKIE, access, max_age=settings.access_token_expire_minutes * 60,
+        httponly=True, secure=secure, samesite=samesite,
     )
     response.set_cookie(
-        REFRESH_COOKIE, refresh, max_age=settings.refresh_token_expire_minutes * 60, **common
+        REFRESH_COOKIE, refresh, max_age=settings.refresh_token_expire_minutes * 60,
+        httponly=True, secure=secure, samesite=samesite,
+    )
+    # CSRF: cookie legible por JS (no httpOnly). El frontend la reenvía como cabecera
+    # X-CSRF-Token; el middleware comprueba que coinciden (patrón double-submit).
+    response.set_cookie(
+        CSRF_COOKIE, csrf, max_age=settings.access_token_expire_minutes * 60,
+        httponly=False, secure=secure, samesite=samesite,
     )
     return access
 
@@ -64,7 +80,7 @@ async def login(
     user = result.scalar_one_or_none()
     if user is None or not verify_password(data.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Credenciales incorrectas")
-    access = _set_auth_cookies(response, user)
+    access = await _issue_session(response, user, session)
     return TokenOut(access_token=access)
 
 
@@ -77,9 +93,15 @@ async def refresh(
     if payload is None:
         raise HTTPException(status_code=401, detail="Sesión caducada")
     user = await session.get(User, int(payload["sub"]))
-    if user is None or payload.get("tv") != user.token_version:
+    # Rotación de un solo uso: el jti debe ser el último emitido. Un refresh viejo
+    # (ya rotado o robado y reusado) queda invalidado.
+    if (
+        user is None
+        or payload.get("tv") != user.token_version
+        or payload.get("jti") != user.refresh_jti
+    ):
         raise HTTPException(status_code=401, detail="Sesión caducada")
-    access = _set_auth_cookies(response, user)
+    access = await _issue_session(response, user, session)
     return TokenOut(access_token=access)
 
 
@@ -88,12 +110,14 @@ async def logout(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> Response:
-    # Revoca todos los tokens previos (incrementa token_version) y borra las cookies.
+    # Revoca todos los tokens previos (incrementa token_version, borra el refresh jti).
     user.token_version += 1
+    user.refresh_jti = None
     await session.commit()
     response = Response(status_code=status.HTTP_204_NO_CONTENT)
     response.delete_cookie(ACCESS_COOKIE)
     response.delete_cookie(REFRESH_COOKIE)
+    response.delete_cookie(CSRF_COOKIE)
     return response
 
 

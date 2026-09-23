@@ -11,6 +11,7 @@ from app.models import User
 from app.security import decode_token
 
 ACCESS_COOKIE = "access_token"
+CSRF_COOKIE = "csrf_token"
 
 
 def _token_from_request(request: Request) -> str | None:

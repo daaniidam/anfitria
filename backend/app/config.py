@@ -24,6 +24,10 @@ class Settings(BaseSettings):
 
     # Límite de peticiones (fuerza bruta / spam). Se desactiva en los tests.
     rate_limit_enabled: bool = True
+    # Backend del rate limit: por defecto en memoria (por proceso). En producción
+    # con varias réplicas, apunta a Redis (p. ej. redis://redis:6379/1) para un
+    # límite global compartido.
+    rate_limit_storage_uri: str | None = None
 
     # Si True, el webhook de WhatsApp encola el trabajo pesado (IA) en el worker
     # ARQ y responde al instante; si False, procesa en línea (demo/tests).

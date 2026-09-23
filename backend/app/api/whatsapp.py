@@ -18,12 +18,21 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response,
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.adapters.channel.factory import get_channel
 from app.config import get_settings
 from app.db import get_session
 from app.models import Message, Property
 from app.services.conversation import handle_inbound
 
 logger = logging.getLogger("anfitria.whatsapp")
+
+# Respuesta cuando el huésped manda algo que aún no sabemos leer (imagen, audio…).
+_NON_TEXT_REPLY = {
+    "es": "¡Gracias por escribir! De momento solo puedo leer mensajes de texto. "
+    "¿Puedes contarme tu duda por escrito?",
+    "en": "Thanks for reaching out! For now I can only read text messages. "
+    "Could you type your question?",
+}
 
 router = APIRouter(prefix="/channels/whatsapp", tags=["whatsapp"])
 
@@ -78,7 +87,16 @@ async def receive_webhook(
                 continue  # número no asignado a ningún piso
             for message in value.get("messages", []):
                 if message.get("type") != "text":
-                    # Por ahora solo texto; otros tipos (imagen/audio/ubicación) se ignoran.
+                    # Aún solo entendemos texto; avisamos al huésped en vez de ignorarlo.
+                    sender = message.get("from")
+                    if sender:
+                        note = _NON_TEXT_REPLY.get(
+                            property.default_language, _NON_TEXT_REPLY["es"]
+                        )
+                        try:
+                            await get_channel().send(sender, note)
+                        except Exception:  # pragma: no cover - no romper por el canal
+                            logger.warning("No se pudo avisar de mensaje no-texto", exc_info=True)
                     continue
                 sender = message.get("from")
                 text = (message.get("text") or {}).get("body")

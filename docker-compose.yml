@@ -38,6 +38,10 @@ services:
       WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN:-}
       WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
       WHATSAPP_APP_SECRET: ${WHATSAPP_APP_SECRET:-}
+      # Rate limit global entre réplicas (Redis). Sin esto, en memoria por proceso.
+      RATE_LIMIT_STORAGE_URI: ${RATE_LIMIT_STORAGE_URI:-redis://redis:6379/1}
+      # PROCESS_ASYNC=true encola la IA en el worker ARQ (webhook responde al instante).
+      PROCESS_ASYNC: ${PROCESS_ASYNC:-false}
     ports:
       - "8000:8000"
     volumes:

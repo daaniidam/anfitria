@@ -13,16 +13,26 @@ interface Options {
   body?: unknown
 }
 
+function readCookie(name: string): string | null {
+  const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'))
+  return match ? decodeURIComponent(match[1]) : null
+}
+
 /**
  * Cliente HTTP. La sesión viaja en una cookie httpOnly (no accesible por JS →
  * resiste XSS), por eso siempre enviamos `credentials: 'include'` y no guardamos
- * el token en localStorage.
+ * el token en localStorage. En las mutaciones reenviamos el token CSRF (double-submit).
  */
 export async function api<T>(path: string, options: Options = {}): Promise<T> {
+  const method = options.method ?? 'GET'
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (method !== 'GET') {
+    const csrf = readCookie('csrf_token')
+    if (csrf) headers['X-CSRF-Token'] = csrf
+  }
 
   const response = await fetch(`${BASE}${path}`, {
-    method: options.method ?? 'GET',
+    method,
     headers,
     credentials: 'include',
     body: options.body !== undefined ? JSON.stringify(options.body) : undefined,

@@ -8,8 +8,16 @@ from slowapi.util import get_remote_address
 
 from app.config import get_settings
 
-limiter = Limiter(
-    key_func=get_remote_address,
-    enabled=get_settings().rate_limit_enabled,
-    default_limits=[],
-)
+_settings = get_settings()
+
+# Con `rate_limit_storage_uri` (Redis) el límite es global entre réplicas; sin él,
+# en memoria por proceso (suficiente en una sola instancia / desarrollo).
+_limiter_kwargs: dict = {
+    "key_func": get_remote_address,
+    "enabled": _settings.rate_limit_enabled,
+    "default_limits": [],
+}
+if _settings.rate_limit_storage_uri:
+    _limiter_kwargs["storage_uri"] = _settings.rate_limit_storage_uri
+
+limiter = Limiter(**_limiter_kwargs)
