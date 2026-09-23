@@ -37,6 +37,8 @@ package = false
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+# Los ficheros de migración los genera Alembic (autogenerate); no se lintan.
+extend-exclude = ["migrations/versions"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
