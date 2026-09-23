@@ -102,6 +102,7 @@ class ReservationCreate(BaseModel):
     guest_ref: str = Field(min_length=1, max_length=64)
     check_in: date
     check_out: date
+    source: str = Field(default="direct", pattern="^(booking|airbnb|direct|other)$")
     code: str | None = Field(default=None, max_length=32)
 
 
@@ -111,6 +112,7 @@ class ReservationUpdate(BaseModel):
     check_in: date | None = None
     check_out: date | None = None
     status: str | None = Field(default=None, max_length=16)
+    source: str | None = Field(default=None, pattern="^(booking|airbnb|direct|other)$")
     code: str | None = Field(default=None, max_length=32)
 
 
@@ -123,7 +125,17 @@ class ReservationOut(BaseModel):
     check_in: date
     check_out: date
     status: str
+    source: str
     code: str | None
+
+
+class ReservationListItem(ReservationOut):
+    property_name: str  # para la vista global (todas las reservas del propietario)
+
+
+class ReservationImportOut(BaseModel):
+    imported: int
+    source: str
 
 
 class InboundMessage(BaseModel):
@@ -158,6 +170,7 @@ class ConversationOut(BaseModel):
     property_id: int
     guest_ref: str
     channel: str
+    reservation_id: int | None = None
     handoff: bool = False
     assigned_to: int | None = None
 

@@ -54,6 +54,7 @@ export interface Conversation {
   property_id: number
   guest_ref: string
   channel: string
+  reservation_id: number | null
   handoff: boolean
   assigned_to: number | null
 }
@@ -101,7 +102,12 @@ export interface Reservation {
   check_in: string
   check_out: string
   status: string
+  source: string
   code: string | null
+}
+
+export interface ReservationListItem extends Reservation {
+  property_name: string
 }
 
 export interface Notification {

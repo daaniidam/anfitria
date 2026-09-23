@@ -1,9 +1,17 @@
 import { useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { ConversationsApi, PropertiesApi } from '../api/endpoints'
+import { ConversationsApi, PropertiesApi, ReservationsApi } from '../api/endpoints'
 import { Button, Card, EmptyState, Tag } from '../components/ui'
 import type { Conversation } from '../types'
+
+const SOURCE_LABEL: Record<string, string> = {
+  booking: 'Booking', airbnb: 'Airbnb', direct: 'Directa', other: 'Otro',
+}
+
+function fmtDay(iso: string): string {
+  return new Date(iso + 'T00:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
+}
 
 export function ConversacionesPage() {
   const { data: conversations } = useQuery({
@@ -75,6 +83,8 @@ function Thread({ conversation, propertyName }: { conversation: Conversation; pr
     queryFn: () => ConversationsApi.messages(conversation.id),
     refetchInterval: 5000,
   })
+  const { data: reservations } = useQuery({ queryKey: ['reservations'], queryFn: ReservationsApi.list })
+  const reservation = reservations?.find((r) => r.id === conversation.reservation_id) ?? null
   const [text, setText] = useState('')
 
   const invalidate = () => {
@@ -114,6 +124,16 @@ function Thread({ conversation, propertyName }: { conversation: Conversation; pr
           </Button>
         )}
       </header>
+
+      {reservation ? (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-sm">
+          <Tag tone="brand">Reserva</Tag>
+          <span className="font-medium text-ink">{reservation.guest_name}</span>
+          <span className="text-muted">
+            {SOURCE_LABEL[reservation.source] ?? reservation.source} · {fmtDay(reservation.check_in)} → {fmtDay(reservation.check_out)}
+          </span>
+        </div>
+      ) : null}
 
       {conversation.handoff ? (
         <div className="rounded-lg border border-brass/40 bg-brass-soft/60 px-3 py-2 text-sm text-brass-ink">

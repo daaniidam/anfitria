@@ -65,9 +65,12 @@ el **propietario** gestiona el equipo e invita miembros; los **miembros** operan
 
 ![Equipo](docs/img/equipo.jpg)
 
-**Reservas** — con la reserva del huésped, la IA sabe la **fase de la estancia**
-(pre-llegada / alojado ahora / salida) y responde con fechas concretas: *«tu
-check-in es mañana a las 15:00»* en vez de en genérico. Multi-idioma **ES/EN/FR/DE/IT**.
+**Reservas** — todas las reservas del propietario en una vista, con **de dónde
+vienen** (Booking · Airbnb · directa) y la **fase de la estancia** (pre-llegada /
+alojado / salida). La IA responde con fechas concretas (*«tu check-in es mañana a
+las 15:00»*) y cada conversación queda ligada a su reserva. Se conecta con
+**Booking/Airbnb** importando el calendario **iCal (.ics)** del anuncio.
+Multi-idioma **ES/EN/FR/DE/IT**.
 
 ![Reservas](docs/img/reservas.jpg)
 

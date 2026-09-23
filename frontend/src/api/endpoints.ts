@@ -11,6 +11,7 @@ import type {
   Org,
   Property,
   Reservation,
+  ReservationListItem,
   User,
 } from '../types'
 import { api, apiUpload } from './client'
@@ -92,7 +93,7 @@ export const PropertiesApi = {
 }
 
 export const ReservationsApi = {
-  list: () => api<Reservation[]>('/reservations'),
+  list: () => api<ReservationListItem[]>('/reservations'),
   byProperty: (propertyId: number) =>
     api<Reservation[]>(`/properties/${propertyId}/reservations`),
   create: (
@@ -102,9 +103,15 @@ export const ReservationsApi = {
       guest_ref: string
       check_in: string
       check_out: string
+      source?: string
       code?: string | null
     },
   ) => api<Reservation>(`/properties/${propertyId}/reservations`, { method: 'POST', body }),
+  importIcs: (propertyId: number, file: File) =>
+    apiUpload<{ imported: number; source: string }>(
+      `/properties/${propertyId}/reservations/import-ics`,
+      file,
+    ),
   update: (id: number, body: Partial<{ status: string; check_in: string; check_out: string }>) =>
     api<Reservation>(`/reservations/${id}`, { method: 'PATCH', body }),
   remove: (id: number) => api<void>(`/reservations/${id}`, { method: 'DELETE' }),

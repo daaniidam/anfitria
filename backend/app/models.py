@@ -133,6 +133,8 @@ class Reservation(Base):
     check_out: Mapped[date] = mapped_column(Date)
     # upcoming | active | past | cancelled
     status: Mapped[str] = mapped_column(String(16), default="upcoming")
+    # De dónde viene la reserva: booking | airbnb | direct | other
+    source: Mapped[str] = mapped_column(String(16), default="direct")
     code: Mapped[str | None] = mapped_column(String(32), default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
@@ -146,6 +148,10 @@ class Conversation(Base):
     property_id: Mapped[int] = mapped_column(ForeignKey("properties.id"), index=True)
     guest_ref: Mapped[str] = mapped_column(String(64), index=True)  # teléfono o id del huésped
     channel: Mapped[str] = mapped_column(String(32), default="sim")
+    # Reserva a la que pertenece esta conversación (para tenerlo todo relacionado).
+    reservation_id: Mapped[int | None] = mapped_column(
+        ForeignKey("reservations.id"), default=None, index=True
+    )
     # Handoff en vivo: si True, la IA se aparta y responde una persona del equipo.
     handoff: Mapped[bool] = mapped_column(default=False)
     assigned_to: Mapped[int | None] = mapped_column(ForeignKey("users.id"), default=None)

@@ -101,6 +101,11 @@ async def handle_inbound(
     session.add(inbound)
     await session.flush()
 
+    # Enlazar la conversación con la reserva del huésped (todo ligado a esa reserva).
+    reservation = await find_reservation(session, property.id, guest_ref)
+    if reservation is not None and conversation.reservation_id != reservation.id:
+        conversation.reservation_id = reservation.id
+
     # Handoff en vivo: una persona ha tomado el control; la IA no responde, solo avisa.
     if conversation.handoff:
         session.add(
@@ -134,8 +139,7 @@ async def handle_inbound(
     )
     all_knowledge = [row[0] for row in all_rows.all()]
 
-    # Contexto de la reserva: en qué fase de la estancia está el huésped.
-    reservation = await find_reservation(session, property.id, guest_ref)
+    # Contexto de la reserva (ya localizada arriba): fase de la estancia para la IA.
     stay_context = build_stay_context(reservation) if reservation is not None else None
 
     ai = get_ai_provider()
