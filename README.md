@@ -52,6 +52,19 @@ parking, zonas comunes) con todos ellos de una vez:
 
 ![Edificios](docs/img/edificios.jpg)
 
+**Auditoría** — trazabilidad completa: qué decidió la IA y qué hizo el
+anfitrión, con la hora. *IA supervisada, no caja negra.*
+
+![Auditoría](docs/img/auditoria.jpg)
+
+**Avisos y tendencia** — la campana avisa al anfitrión de cada escalada (no
+depende de estar mirando); las métricas muestran la actividad día a día. Y el
+conocimiento se puede **editar o borrar** en línea.
+
+| Avisos de escalada | Editar / borrar conocimiento |
+|:---:|:---:|
+| ![Avisos](docs/img/avisos.jpg) | ![Editar conocimiento](docs/img/editar-conocimiento.jpg) |
+
 | Acceso | Pisos y conocimiento (con modo auto/manual por piso) |
 |:---:|:---:|
 | ![Login](docs/img/login.jpg) | ![Pisos](docs/img/pisos-conocimiento.jpg) |
