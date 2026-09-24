@@ -3,7 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { OrgApi } from '../api/endpoints'
 import { useAuth } from '../auth'
-import { Button, Card, Field, Tag } from '../components/ui'
+import { Button, Card, ConfirmButton, Field, Tag } from '../components/ui'
+import { notify } from '../components/Toast'
 import type { User } from '../types'
 
 export function EquipoPage() {
@@ -25,6 +26,7 @@ export function EquipoPage() {
       setName('')
       setEmail('')
       setPassword('')
+      notify('Miembro añadido al equipo.', 'success')
       void invalidate()
     },
   })
@@ -83,12 +85,11 @@ export function EquipoPage() {
                     >
                       {member.role === 'owner' ? 'Hacer miembro' : 'Hacer propietario'}
                     </button>
-                    <button
-                      onClick={() => remove.mutate(member.id)}
-                      className="text-xs font-medium text-muted hover:text-brass-ink hover:underline"
-                    >
-                      Quitar
-                    </button>
+                    <ConfirmButton
+                      onConfirm={() => remove.mutate(member.id)}
+                      label="Quitar"
+                      question="¿Quitar del equipo?"
+                    />
                   </div>
                 ) : null}
               </Card>

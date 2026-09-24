@@ -93,14 +93,44 @@ function NotificationsBell() {
   )
 }
 
+function NavList({ onNavigate }: { onNavigate?: () => void }) {
+  return (
+    <ul className="flex flex-col gap-1">
+      {NAV.map((item) => (
+        <li key={item.to}>
+          <NavLink
+            to={item.to}
+            end={item.end}
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              'block rounded-lg px-3 py-2 text-sm font-medium transition ' +
+              (isActive ? 'bg-brand-soft text-brand-ink' : 'text-muted hover:bg-sunk hover:text-ink')
+            }
+          >
+            {item.label}
+          </NavLink>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 export function Shell({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth()
+  const [menuOpen, setMenuOpen] = useState(false)
 
   return (
     <div className="min-h-screen bg-ground">
       <header className="sticky top-0 z-10 border-b border-line bg-mist/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
           <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => setMenuOpen(true)}
+              aria-label="Abrir menú"
+              className="grid h-8 w-8 place-items-center rounded-lg border border-line bg-surface text-ink md:hidden"
+            >
+              <span aria-hidden className="text-base leading-none">☰</span>
+            </button>
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-sm font-bold text-white">
               A
             </span>
@@ -122,26 +152,32 @@ export function Shell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
+      {/* Menú móvil (drawer) */}
+      {menuOpen ? (
+        <div className="fixed inset-0 z-30 md:hidden" onClick={() => setMenuOpen(false)}>
+          <div className="absolute inset-0 bg-ink/30" />
+          <nav
+            className="absolute left-0 top-0 h-full w-64 border-r border-line bg-surface p-4 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <span className="font-display text-lg font-bold text-ink">AnfitrIA</span>
+              <button
+                onClick={() => setMenuOpen(false)}
+                aria-label="Cerrar menú"
+                className="grid h-8 w-8 place-items-center rounded-lg border border-line text-ink"
+              >
+                ✕
+              </button>
+            </div>
+            <NavList onNavigate={() => setMenuOpen(false)} />
+          </nav>
+        </div>
+      ) : null}
+
       <div className="mx-auto flex max-w-6xl gap-6 px-5 py-6">
         <nav className="hidden w-52 shrink-0 md:block">
-          <ul className="flex flex-col gap-1">
-            {NAV.map((item) => (
-              <li key={item.to}>
-                <NavLink
-                  to={item.to}
-                  end={item.end}
-                  className={({ isActive }) =>
-                    'block rounded-lg px-3 py-2 text-sm font-medium transition ' +
-                    (isActive
-                      ? 'bg-brand-soft text-brand-ink'
-                      : 'text-muted hover:bg-sunk hover:text-ink')
-                  }
-                >
-                  {item.label}
-                </NavLink>
-              </li>
-            ))}
-          </ul>
+          <NavList />
         </nav>
 
         <main className="min-w-0 flex-1">{children}</main>

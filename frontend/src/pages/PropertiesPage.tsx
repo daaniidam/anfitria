@@ -2,7 +2,7 @@ import { useRef, useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { BuildingsApi, PropertiesApi } from '../api/endpoints'
-import { Button, Card, EmptyState, Field, Tag, TextArea } from '../components/ui'
+import { Button, Card, ConfirmButton, EmptyState, Field, Tag, TextArea } from '../components/ui'
 import type { KnowledgeItem, Property } from '../types'
 
 const CATEGORIES = ['check-in', 'wifi', 'cómo llegar', 'normas', 'recomendaciones', 'general']
@@ -302,13 +302,10 @@ export function KnowledgeCard({
               >
                 Editar
               </button>
-              <button
-                onClick={() => void run(onDelete)}
-                disabled={busy}
-                className="text-xs font-medium text-muted hover:text-brass-ink hover:underline"
-              >
-                Borrar
-              </button>
+              <ConfirmButton
+                onConfirm={() => void run(onDelete)}
+                question="¿Borrar esta información?"
+              />
             </>
           )}
         </div>

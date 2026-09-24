@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react'
 
 type Variant = 'brass' | 'brand' | 'ghost' | 'soft'
@@ -75,6 +76,46 @@ export function Tag({ children, tone = 'brand' }: { children: ReactNode; tone?: 
     <span className={`inline-flex items-center rounded-md px-2 py-0.5 font-mono text-[0.68rem] ${tones[tone]}`}>
       {children}
     </span>
+  )
+}
+
+/** Botón de borrado con confirmación en línea (sin diálogos): "Borrar" → "¿Seguro? Sí / No". */
+export function ConfirmButton({
+  onConfirm,
+  label = 'Borrar',
+  question = '¿Seguro?',
+}: {
+  onConfirm: () => void
+  label?: string
+  question?: string
+}) {
+  const [armed, setArmed] = useState(false)
+  if (armed) {
+    return (
+      <span className="inline-flex items-center gap-2 text-xs">
+        <span className="text-muted">{question}</span>
+        <button
+          onClick={() => {
+            setArmed(false)
+            onConfirm()
+          }}
+          className="font-medium text-brass-ink hover:underline"
+        >
+          Sí
+        </button>
+        <button onClick={() => setArmed(false)} className="text-muted hover:underline">
+          No
+        </button>
+      </span>
+    )
+  }
+  return (
+    <button
+      onClick={() => setArmed(true)}
+      className="text-xs font-medium text-muted hover:text-brass-ink hover:underline"
+    >
+      {label}
+    </button>
   )
 }
 

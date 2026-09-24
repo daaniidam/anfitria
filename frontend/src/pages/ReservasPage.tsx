@@ -2,7 +2,8 @@ import { useMemo, useRef, useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { PropertiesApi, ReservationsApi } from '../api/endpoints'
-import { Button, Card, EmptyState, Field } from '../components/ui'
+import { Button, Card, ConfirmButton, EmptyState, Field } from '../components/ui'
+import { notify } from '../components/Toast'
 import type { ReservationListItem } from '../types'
 
 const SOURCES: Record<string, { label: string; bg: string; fg: string }> = {
@@ -96,12 +97,10 @@ export function ReservasPage() {
                         {res.code ? ` · ${res.code}` : ''}
                       </p>
                     </div>
-                    <button
-                      onClick={() => remove.mutate(res.id)}
-                      className="text-xs font-medium text-muted hover:text-brass-ink hover:underline"
-                    >
-                      Borrar
-                    </button>
+                    <ConfirmButton
+                      onConfirm={() => remove.mutate(res.id)}
+                      question="¿Borrar la reserva?"
+                    />
                   </Card>
                 </li>
               )
@@ -223,7 +222,10 @@ function ImportIcs({
   const fileRef = useRef<HTMLInputElement>(null)
   const importIcs = useMutation({
     mutationFn: (file: File) => ReservationsApi.importIcs(pid, file),
-    onSuccess: onDone,
+    onSuccess: (res) => {
+      notify(`Importadas ${res.imported} reservas de ${res.source}.`, 'success')
+      onDone()
+    },
   })
 
   return (

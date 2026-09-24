@@ -26,14 +26,16 @@ describe('KnowledgeCard', () => {
     expect(onSave).toHaveBeenCalledWith('Clave nueva: SOL-9999')
   })
 
-  it('borra al pulsar Borrar', async () => {
+  it('borra tras confirmar', async () => {
     const user = userEvent.setup()
     const onSave = vi.fn().mockResolvedValue(undefined)
     const onDelete = vi.fn().mockResolvedValue(undefined)
 
     render(<KnowledgeCard item={item} onSave={onSave} onDelete={onDelete} />)
     await user.click(screen.getByRole('button', { name: 'Borrar' }))
-
+    // Pide confirmación en línea: no borra hasta pulsar "Sí".
+    expect(onDelete).not.toHaveBeenCalled()
+    await user.click(screen.getByRole('button', { name: 'Sí' }))
     expect(onDelete).toHaveBeenCalledTimes(1)
   })
 })
