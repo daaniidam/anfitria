@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { InboxApi } from '../api/endpoints'
 import { ChatBubble } from '../components/ChatBubble'
 import { ConfidenceMeter } from '../components/ConfidenceMeter'
+import { Onboarding } from '../components/Onboarding'
 import { Button, Card, EmptyState, Tag, TextArea } from '../components/ui'
 import type { InboxItem } from '../types'
 
@@ -12,6 +13,7 @@ export function InboxPage() {
 
   return (
     <div className="flex flex-col gap-5">
+      <Onboarding />
       <header>
         <p className="eyebrow text-brand-ink">Supervisión</p>
         <h1 className="mt-1 font-display text-2xl font-bold text-ink">Escaladas</h1>

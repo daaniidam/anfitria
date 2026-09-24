@@ -8,6 +8,7 @@ import type {
   Message,
   Metrics,
   Notification,
+  OnboardingStatus,
   Org,
   Property,
   Reservation,
@@ -42,6 +43,10 @@ export const NotificationsApi = {
 
 export const AuditApi = {
   list: () => api<AuditLog[]>('/audit'),
+}
+
+export const OnboardingApi = {
+  status: () => api<OnboardingStatus>('/onboarding'),
 }
 
 export const OrgApi = {

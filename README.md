@@ -26,7 +26,14 @@ Explora todo en `http://localhost:8000/docs`.
 ## Interfaz
 
 Panel del anfitrión (React + TypeScript + Tailwind) con un **simulador de chat**
-de huésped y una pantalla de **escaladas** para supervisión.
+de huésped y una pantalla de **escaladas** para supervisión. Usable también en
+**móvil** (menú lateral deslizante) y con **avisos** y **confirmación** antes de borrar.
+
+**Primeros pasos** — un anfitrión nuevo no se queda ante un panel vacío: un
+checklist le guía (crea piso → completa/importa la ficha → pruébalo) y se
+auto-completa con sus datos:
+
+![Primeros pasos](docs/img/onboarding.jpg)
 
 **Simulador de huésped** — la IA responde **al instante**; si no sabe algo,
 manda un aviso de espera y lo escala (el huésped nunca se queda sin respuesta):

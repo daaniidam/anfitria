@@ -13,6 +13,7 @@ from app.api import (
     conversations,
     metrics,
     notifications,
+    onboarding,
     org,
     properties,
     reservations,
@@ -108,6 +109,7 @@ def create_app() -> FastAPI:
     app.include_router(notifications.router)
     app.include_router(audit.router)
     app.include_router(org.router)
+    app.include_router(onboarding.router)
     return app
 
 

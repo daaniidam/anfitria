@@ -36,6 +36,13 @@ class OrgOut(BaseModel):
     name: str
 
 
+class OnboardingStatus(BaseModel):
+    has_property: bool
+    has_knowledge: bool
+    has_whatsapp: bool
+    has_conversation: bool
+
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str

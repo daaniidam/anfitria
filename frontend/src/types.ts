@@ -11,6 +11,13 @@ export interface Org {
   name: string
 }
 
+export interface OnboardingStatus {
+  has_property: boolean
+  has_knowledge: boolean
+  has_whatsapp: boolean
+  has_conversation: boolean
+}
+
 export interface Building {
   id: number
   name: string
