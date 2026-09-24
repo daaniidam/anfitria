@@ -3,11 +3,10 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './auth'
 import { Shell } from './components/Shell'
 import { AuditPage } from './pages/AuditPage'
+import { BandejaPage } from './pages/BandejaPage'
 import { BuildingsPage } from './pages/BuildingsPage'
-import { ConversacionesPage } from './pages/ConversacionesPage'
 import { EquipoPage } from './pages/EquipoPage'
 import { GuestSimPage } from './pages/GuestSimPage'
-import { InboxPage } from './pages/InboxPage'
 import { LoginPage } from './pages/LoginPage'
 import { MetricsPage } from './pages/MetricsPage'
 import { PropertiesPage } from './pages/PropertiesPage'
@@ -35,14 +34,14 @@ export default function App() {
   return (
     <Shell>
       <Routes>
-        <Route path="/" element={<InboxPage />} />
+        <Route path="/" element={<BandejaPage />} />
         <Route path="/metricas" element={<MetricsPage />} />
         <Route path="/pisos" element={<PropertiesPage />} />
         <Route path="/reservas" element={<ReservasPage />} />
         <Route path="/edificios" element={<BuildingsPage />} />
         <Route path="/auditoria" element={<AuditPage />} />
         <Route path="/equipo" element={<EquipoPage />} />
-        <Route path="/conversaciones" element={<ConversacionesPage />} />
+        <Route path="/conversaciones" element={<Navigate to="/" replace />} />
         <Route path="/simulador" element={<GuestSimPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -40,10 +40,12 @@ manda un aviso de espera y lo escala (el huésped nunca se queda sin respuesta):
 
 ![Simulador de huésped](docs/img/simulador.jpg)
 
-**Escaladas** — solo lo que la IA prefirió consultar; el medidor de confianza
-(en latón) indica cuán segura estaba. El anfitrión edita y responde:
+**Bandeja** — todas las conversaciones en un sitio, con filtros **Pendientes /
+En vivo / Todas**. Al abrir una, ves el hilo, la **respuesta sugerida por la IA**
+(con su medidor de confianza) para editarla y enviarla, y puedes **tomar el
+control** para atender en vivo:
 
-![Escaladas](docs/img/escaladas.jpg)
+![Bandeja](docs/img/bandeja.jpg)
 
 **Métricas** — cuánto resuelve la IA sola, escaladas y tiempo ahorrado:
 
