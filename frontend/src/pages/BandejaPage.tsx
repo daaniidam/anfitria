@@ -1,10 +1,9 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useSearchParams } from 'react-router-dom'
 
 import { ConversationsApi, InboxApi, PropertiesApi, ReservationsApi } from '../api/endpoints'
 import { ConfidenceMeter } from '../components/ConfidenceMeter'
-import { Onboarding } from '../components/Onboarding'
-import { TodaySummary } from '../components/TodaySummary'
 import { Button, Card, EmptyState, Tag, TextArea } from '../components/ui'
 import type { Conversation, InboxItem } from '../types'
 
@@ -38,8 +37,12 @@ export function BandejaPage() {
     return map
   }, [inbox])
 
-  const [filter, setFilter] = useState<Filter>('pending')
-  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [searchParams] = useSearchParams()
+  const [filter, setFilter] = useState<Filter>('all')
+  const [selectedId, setSelectedId] = useState<number | null>(() => {
+    const c = Number(searchParams.get('c'))
+    return c > 0 ? c : null
+  })
 
   const counts = useMemo(() => {
     const all = conversations ?? []
@@ -76,17 +79,14 @@ export function BandejaPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <Onboarding />
       <header>
         <p className="eyebrow text-brand-ink">Supervisión</p>
-        <h1 className="mt-1 font-display text-2xl font-bold text-ink">Bandeja</h1>
+        <h1 className="mt-1 font-display text-2xl font-bold text-ink">Conversaciones</h1>
         <p className="mt-1 text-sm text-muted">
           Todas las conversaciones en un sitio. La IA responde sola cuando está segura; aquí
           respondes lo que te consulta y puedes tomar el control en vivo.
         </p>
       </header>
-
-      <TodaySummary />
 
       <div className="flex gap-2">
         {FILTERS.map((f) => (

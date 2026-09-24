@@ -25,9 +25,15 @@ Explora todo en `http://localhost:8000/docs`.
 
 ## Interfaz
 
-Panel del anfitrión (React + TypeScript + Tailwind) con un **simulador de chat**
-de huésped y una pantalla de **escaladas** para supervisión. Usable también en
-**móvil** (menú lateral deslizante) y con **avisos** y **confirmación** antes de borrar.
+Panel del anfitrión (React + TypeScript + Tailwind) organizado como un **puesto
+de trabajo**, no como un menú de secciones: **Hoy · Conversaciones · Alojamientos
+· Ajustes**. Usable también en **móvil** (menú deslizante), con **avisos** y
+**confirmación** antes de borrar.
+
+**Hoy** — el cockpit del día de un vistazo: llegadas y salidas, cola de
+pendientes, conversaciones en vivo y KPIs. Un clic lleva a la conversación:
+
+![Hoy](docs/img/hoy.jpg)
 
 **Primeros pasos** — un anfitrión nuevo no se queda ante un panel vacío: un
 checklist le guía (crea piso → completa/importa la ficha → pruébalo) y se

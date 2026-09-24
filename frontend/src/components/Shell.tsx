@@ -6,14 +6,10 @@ import { NotificationsApi } from '../api/endpoints'
 import { useAuth } from '../auth'
 
 const NAV = [
-  { to: '/', label: 'Bandeja', end: true },
-  { to: '/metricas', label: 'Métricas', end: false },
-  { to: '/pisos', label: 'Pisos', end: false },
-  { to: '/reservas', label: 'Reservas', end: false },
-  { to: '/edificios', label: 'Edificios', end: false },
-  { to: '/auditoria', label: 'Auditoría', end: false },
-  { to: '/equipo', label: 'Equipo', end: false },
-  { to: '/simulador', label: 'Simulador de huésped', end: false },
+  { to: '/', label: 'Hoy', end: true },
+  { to: '/conversaciones', label: 'Conversaciones', end: false },
+  { to: '/alojamientos', label: 'Alojamientos', end: false },
+  { to: '/ajustes', label: 'Ajustes', end: false },
 ]
 
 function NotificationsBell() {

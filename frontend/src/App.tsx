@@ -2,15 +2,11 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { useAuth } from './auth'
 import { Shell } from './components/Shell'
-import { AuditPage } from './pages/AuditPage'
+import { AjustesPage } from './pages/AjustesPage'
+import { AlojamientosPage } from './pages/AlojamientosPage'
 import { BandejaPage } from './pages/BandejaPage'
-import { BuildingsPage } from './pages/BuildingsPage'
-import { EquipoPage } from './pages/EquipoPage'
-import { GuestSimPage } from './pages/GuestSimPage'
+import { HoyPage } from './pages/HoyPage'
 import { LoginPage } from './pages/LoginPage'
-import { MetricsPage } from './pages/MetricsPage'
-import { PropertiesPage } from './pages/PropertiesPage'
-import { ReservasPage } from './pages/ReservasPage'
 
 export default function App() {
   const { user, loading } = useAuth()
@@ -34,15 +30,20 @@ export default function App() {
   return (
     <Shell>
       <Routes>
-        <Route path="/" element={<BandejaPage />} />
-        <Route path="/metricas" element={<MetricsPage />} />
-        <Route path="/pisos" element={<PropertiesPage />} />
-        <Route path="/reservas" element={<ReservasPage />} />
-        <Route path="/edificios" element={<BuildingsPage />} />
-        <Route path="/auditoria" element={<AuditPage />} />
-        <Route path="/equipo" element={<EquipoPage />} />
-        <Route path="/conversaciones" element={<Navigate to="/" replace />} />
-        <Route path="/simulador" element={<GuestSimPage />} />
+        <Route path="/" element={<HoyPage />} />
+        <Route path="/conversaciones" element={<BandejaPage />} />
+        <Route path="/alojamientos" element={<AlojamientosPage />} />
+        <Route path="/ajustes" element={<AjustesPage />} />
+
+        {/* Rutas antiguas → nueva estructura (por si hay enlaces guardados) */}
+        <Route path="/pisos" element={<Navigate to="/alojamientos?tab=pisos" replace />} />
+        <Route path="/reservas" element={<Navigate to="/alojamientos?tab=reservas" replace />} />
+        <Route path="/edificios" element={<Navigate to="/alojamientos?tab=edificios" replace />} />
+        <Route path="/metricas" element={<Navigate to="/ajustes?tab=metricas" replace />} />
+        <Route path="/auditoria" element={<Navigate to="/ajustes?tab=auditoria" replace />} />
+        <Route path="/equipo" element={<Navigate to="/ajustes?tab=equipo" replace />} />
+        <Route path="/simulador" element={<Navigate to="/ajustes?tab=simulador" replace />} />
+
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Shell>
