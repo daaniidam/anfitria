@@ -40,7 +40,8 @@ manda un aviso de espera y lo escala (el huésped nunca se queda sin respuesta):
 
 ![Simulador de huésped](docs/img/simulador.jpg)
 
-**Bandeja** — todas las conversaciones en un sitio, con filtros **Pendientes /
+**Bandeja** — arranca con un **resumen de hoy** (llegadas, salidas, pendientes,
+en vivo) y todas las conversaciones en un sitio, con filtros **Pendientes /
 En vivo / Todas**. Al abrir una, ves el hilo, la **respuesta sugerida por la IA**
 (con su medidor de confianza) para editarla y enviarla, **por qué escaló**
 (no tenía info / poca confianza / modo manual), y puedes **tomar el control**

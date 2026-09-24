@@ -96,6 +96,11 @@ export function ReservasPage() {
                         {res.guest_ref ? ` · ${res.guest_ref}` : ''}
                         {res.code ? ` · ${res.code}` : ''}
                       </p>
+                      {!res.guest_ref ? (
+                        <p className="mt-0.5 text-xs text-brass-ink">
+                          Sin teléfono aún — la IA la vinculará cuando el huésped escriba.
+                        </p>
+                      ) : null}
                     </div>
                     <ConfirmButton
                       onConfirm={() => remove.mutate(res.id)}

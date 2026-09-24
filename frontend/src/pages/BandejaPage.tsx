@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ConversationsApi, InboxApi, PropertiesApi, ReservationsApi } from '../api/endpoints'
 import { ConfidenceMeter } from '../components/ConfidenceMeter'
 import { Onboarding } from '../components/Onboarding'
+import { TodaySummary } from '../components/TodaySummary'
 import { Button, Card, EmptyState, Tag, TextArea } from '../components/ui'
 import type { Conversation, InboxItem } from '../types'
 
@@ -84,6 +85,8 @@ export function BandejaPage() {
           respondes lo que te consulta y puedes tomar el control en vivo.
         </p>
       </header>
+
+      <TodaySummary />
 
       <div className="flex gap-2">
         {FILTERS.map((f) => (
