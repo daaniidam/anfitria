@@ -12,6 +12,11 @@ type Filter = 'pending' | 'live' | 'all'
 const SOURCE_LABEL: Record<string, string> = {
   booking: 'Booking', airbnb: 'Airbnb', direct: 'Directa', other: 'Otro',
 }
+const REASON_LABEL: Record<string, string> = {
+  sin_info: 'No encontró información que encaje en la ficha del piso.',
+  poca_confianza: 'No estaba segura de la respuesta (confianza baja).',
+  manual: 'Este piso está en modo manual: revisas todas las respuestas.',
+}
 function fmtDay(iso: string): string {
   return new Date(iso + 'T00:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
 }
@@ -285,6 +290,14 @@ function ApprovalBox({ item }: { item: InboxItem }) {
         <span className="eyebrow text-brass-ink">La IA te consulta · respuesta sugerida</span>
         <ConfidenceMeter value={item.draft.confidence} />
       </div>
+      {item.draft.reason && REASON_LABEL[item.draft.reason] ? (
+        <p className="mb-2 flex items-start gap-1.5 text-xs text-muted">
+          <span aria-hidden className="text-brass-ink">ⓘ</span>
+          <span>
+            <b className="text-ink">Por qué escaló:</b> {REASON_LABEL[item.draft.reason]}
+          </span>
+        </p>
+      ) : null}
       <TextArea rows={3} value={text} onChange={(e) => setText(e.target.value)} />
       <label className="mt-3 flex items-start gap-2.5 rounded-lg bg-sunk/60 px-3 py-2.5">
         <input

@@ -155,12 +155,31 @@ async def handle_inbound(
         )
     )
 
+    # Umbral efectivo: el propio del piso si lo tiene, si no el global.
+    threshold = (
+        property.auto_answer_threshold
+        if property.auto_answer_threshold is not None
+        else settings.auto_answer_threshold
+    )
+    answered = property.auto_answer and reply.confidence >= threshold
+
+    # Motivo (para el "¿por qué escaló?").
+    if answered:
+        reason = "auto"
+    elif not property.auto_answer:
+        reason = "manual"
+    elif not all_knowledge:
+        reason = "sin_info"
+    else:
+        reason = "poca_confianza"
+
     draft = Draft(
         inbound_message_id=inbound.id,
         text=reply.text,
         language=reply.language,
         confidence=reply.confidence,
         model=reply.model,
+        reason=reason,
         status="pending",
     )
     session.add(draft)
@@ -175,7 +194,6 @@ async def handle_inbound(
     await session.flush()
 
     channel = get_channel()
-    answered = property.auto_answer and reply.confidence >= settings.auto_answer_threshold
 
     if answered:
         # La IA responde sola al huésped.

@@ -14,6 +14,7 @@ from app.schemas import (
     KnowledgeUpdate,
     PropertyCreate,
     PropertyOut,
+    PropertyUpdate,
 )
 from app.services.import_knowledge import parse_upload
 
@@ -56,6 +57,7 @@ async def create_property(
         address=data.address,
         default_language=data.default_language,
         auto_answer=data.auto_answer,
+        auto_answer_threshold=data.auto_answer_threshold,
         whatsapp_phone_number_id=data.whatsapp_phone_number_id,
         building_id=data.building_id,
     )
@@ -80,6 +82,21 @@ async def list_properties(
         .offset(offset)
     )
     return list(result.scalars().all())
+
+
+@router.patch("/properties/{property_id}", response_model=PropertyOut)
+async def update_property(
+    property_id: int,
+    data: PropertyUpdate,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> Property:
+    prop = await get_owned_property(session, property_id, user)
+    for field_name, value in data.model_dump(exclude_unset=True).items():
+        setattr(prop, field_name, value)
+    await session.commit()
+    await session.refresh(prop)
+    return prop
 
 
 @router.delete("/properties/{property_id}", status_code=status.HTTP_204_NO_CONTENT)

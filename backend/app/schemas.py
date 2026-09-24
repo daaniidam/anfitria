@@ -68,8 +68,17 @@ class PropertyCreate(BaseModel):
     address: str | None = Field(default=None, max_length=500)
     default_language: str = Field(default="es", max_length=8)
     auto_answer: bool = True
+    auto_answer_threshold: float | None = Field(default=None, ge=0.0, le=1.0)
     whatsapp_phone_number_id: str | None = Field(default=None, max_length=64)
     building_id: int | None = None
+
+
+class PropertyUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    default_language: str | None = Field(default=None, max_length=8)
+    auto_answer: bool | None = None
+    auto_answer_threshold: float | None = Field(default=None, ge=0.0, le=1.0)
+    whatsapp_phone_number_id: str | None = Field(default=None, max_length=64)
 
 
 class PropertyOut(BaseModel):
@@ -79,6 +88,7 @@ class PropertyOut(BaseModel):
     address: str | None
     default_language: str
     auto_answer: bool
+    auto_answer_threshold: float | None
     whatsapp_phone_number_id: str | None
     building_id: int | None
 
@@ -168,6 +178,7 @@ class DraftOut(BaseModel):
     language: str
     confidence: float
     model: str
+    reason: str | None = None
     status: str
 
 

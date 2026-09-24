@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { BuildingsApi, PropertiesApi } from '../api/endpoints'
 import { Button, Card, ConfirmButton, EmptyState, Field, Tag, TextArea } from '../components/ui'
+import { notify } from '../components/Toast'
 import type { KnowledgeItem, Property } from '../types'
 
 const CATEGORIES = ['check-in', 'wifi', 'cómo llegar', 'normas', 'recomendaciones', 'general']
@@ -163,6 +164,18 @@ function KnowledgePanel({ property }: { property: Property }) {
     },
   })
 
+  const setSensitivity = useMutation({
+    mutationFn: (threshold: number) =>
+      PropertiesApi.update(property.id, { auto_answer_threshold: threshold }),
+    onSuccess: () => {
+      notify('Sensibilidad actualizada.', 'success')
+      void queryClient.invalidateQueries({ queryKey: ['properties'] })
+    },
+  })
+  const th = property.auto_answer_threshold ?? 0.55
+  const sensitivity = th <= 0.45 ? 'responde' : th >= 0.65 ? 'pregunta' : 'equilibrada'
+  const SENS_TO_TH: Record<string, number> = { responde: 0.4, equilibrada: 0.55, pregunta: 0.7 }
+
   const fileRef = useRef<HTMLInputElement>(null)
   const importFile = useMutation({
     mutationFn: (file: File) => PropertiesApi.importKnowledge(property.id, file),
@@ -175,6 +188,23 @@ function KnowledgePanel({ property }: { property: Property }) {
         <p className="eyebrow text-brand-ink">Ficha de conocimiento</p>
         <h2 className="mt-1 font-display text-xl font-bold text-ink">{property.name}</h2>
       </header>
+
+      <Card className="flex flex-wrap items-center justify-between gap-3 p-4">
+        <div>
+          <span className="text-sm font-medium text-ink">Sensibilidad de la IA</span>
+          <p className="text-xs text-muted">Cuánta seguridad necesita para responder sola.</p>
+        </div>
+        <select
+          value={sensitivity}
+          onChange={(e) => setSensitivity.mutate(SENS_TO_TH[e.target.value])}
+          disabled={setSensitivity.isPending}
+          className="rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:ring-2 focus:ring-brand-soft"
+        >
+          <option value="responde">Responde más (menos escaladas)</option>
+          <option value="equilibrada">Equilibrada</option>
+          <option value="pregunta">Pregunta más (más escaladas)</option>
+        </select>
+      </Card>
 
       <Card className="p-4">
         <div className="flex flex-col gap-3">

@@ -77,6 +77,8 @@ class Property(Base):
     default_language: Mapped[str] = mapped_column(String(8), default="es")
     # Si True, la IA responde sola cuando tiene confianza; si no, escala al anfitrión.
     auto_answer: Mapped[bool] = mapped_column(default=True)
+    # Umbral de confianza propio del piso (0-1). Si None, usa el global de la app.
+    auto_answer_threshold: Mapped[float | None] = mapped_column(Float, default=None)
     # Número de WhatsApp (phone_number_id de Meta) asignado a este piso, para enrutar la entrada.
     whatsapp_phone_number_id: Mapped[str | None] = mapped_column(
         String(64), default=None, index=True
@@ -195,6 +197,8 @@ class Draft(Base):
     language: Mapped[str] = mapped_column(String(8), default="es")
     confidence: Mapped[float] = mapped_column(Float, default=0.0)
     model: Mapped[str] = mapped_column(String(64), default="mock")
+    # Por qué actuó así: auto | manual | sin_info | poca_confianza
+    reason: Mapped[str | None] = mapped_column(String(24), default=None)
     # pending | approved | edited | sent
     status: Mapped[str] = mapped_column(String(16), default="pending")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)

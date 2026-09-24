@@ -29,6 +29,7 @@ export interface Property {
   address: string | null
   default_language: string
   auto_answer: boolean
+  auto_answer_threshold: number | null
   building_id: number | null
 }
 
@@ -53,6 +54,7 @@ export interface Draft {
   language: string
   confidence: number
   model: string
+  reason: string | null
   status: string
 }
 

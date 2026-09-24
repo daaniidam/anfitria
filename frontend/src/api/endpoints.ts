@@ -75,8 +75,13 @@ export const PropertiesApi = {
     address?: string
     default_language: string
     auto_answer?: boolean
+    auto_answer_threshold?: number | null
     building_id?: number | null
   }) => api<Property>('/properties', { method: 'POST', body }),
+  update: (
+    id: number,
+    body: Partial<{ auto_answer: boolean; auto_answer_threshold: number | null }>,
+  ) => api<Property>(`/properties/${id}`, { method: 'PATCH', body }),
   remove: (id: number) => api<void>(`/properties/${id}`, { method: 'DELETE' }),
   knowledge: (propertyId: number) =>
     api<KnowledgeItem[]>(`/properties/${propertyId}/knowledge`),
