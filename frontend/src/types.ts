@@ -34,23 +34,6 @@ export interface WhatsAppStatus {
   total_pisos: number
 }
 
-export interface PlanOut {
-  id: string
-  name: string
-  price_eur: number
-  max_properties: number
-  current: boolean
-}
-
-export interface BillingStatus {
-  plan: string
-  plan_name: string
-  price_eur: number
-  max_properties: number
-  properties_used: number
-  plans: PlanOut[]
-}
-
 export interface Building {
   id: number
   name: string

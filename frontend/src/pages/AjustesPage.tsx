@@ -2,7 +2,6 @@ import { useSearchParams } from 'react-router-dom'
 
 import { AuditPage } from './AuditPage'
 import { EquipoPage } from './EquipoPage'
-import { FacturacionPage } from './FacturacionPage'
 import { GuestSimPage } from './GuestSimPage'
 import { IntegracionesPage } from './IntegracionesPage'
 import { MetricsPage } from './MetricsPage'
@@ -12,7 +11,6 @@ const TABS = [
   { key: 'equipo', label: 'Equipo' },
   { key: 'whatsapp', label: 'WhatsApp' },
   { key: 'integraciones', label: 'Integraciones' },
-  { key: 'facturacion', label: 'Facturación' },
   { key: 'metricas', label: 'Métricas' },
   { key: 'auditoria', label: 'Auditoría' },
   { key: 'simulador', label: 'Simulador (demo)' },
@@ -44,7 +42,6 @@ export function AjustesPage() {
       {tab === 'equipo' ? <EquipoPage /> : null}
       {tab === 'whatsapp' ? <WhatsAppSetupPage /> : null}
       {tab === 'integraciones' ? <IntegracionesPage /> : null}
-      {tab === 'facturacion' ? <FacturacionPage /> : null}
       {tab === 'metricas' ? <MetricsPage /> : null}
       {tab === 'auditoria' ? <AuditPage /> : null}
       {tab === 'simulador' ? <GuestSimPage /> : null}
