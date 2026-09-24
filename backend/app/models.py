@@ -83,6 +83,8 @@ class Property(Base):
     whatsapp_phone_number_id: Mapped[str | None] = mapped_column(
         String(64), default=None, index=True
     )
+    # Referencia del piso en el PMS de origen (para sincronizar sin duplicar).
+    external_ref: Mapped[str | None] = mapped_column(String(64), default=None, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     owner: Mapped[User] = relationship(back_populates="properties")
@@ -216,6 +218,19 @@ class AuditLog(Base):
     conversation_id: Mapped[int | None] = mapped_column(
         ForeignKey("conversations.id"), default=None, index=True
     )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class Integration(Base):
+    """Conexión de la organización con un PMS / Channel Manager (Guesty, etc.)."""
+
+    __tablename__ = "integrations"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    org_id: Mapped[int] = mapped_column(ForeignKey("organizations.id"), index=True)
+    provider: Mapped[str] = mapped_column(String(32))
+    status: Mapped[str] = mapped_column(String(16), default="connected")  # connected | disconnected
+    account: Mapped[str | None] = mapped_column(String(120), default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 

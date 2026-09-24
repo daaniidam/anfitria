@@ -11,6 +11,7 @@ from app.api import (
     auth,
     buildings,
     conversations,
+    integrations,
     metrics,
     notifications,
     onboarding,
@@ -110,6 +111,7 @@ def create_app() -> FastAPI:
     app.include_router(audit.router)
     app.include_router(org.router)
     app.include_router(onboarding.router)
+    app.include_router(integrations.router)
     return app
 
 

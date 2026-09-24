@@ -43,6 +43,19 @@ class OnboardingStatus(BaseModel):
     has_conversation: bool
 
 
+class IntegrationProvider(BaseModel):
+    id: str
+    name: str
+    available: bool
+    connected: bool
+    account: str | None = None
+
+
+class PMSSyncResult(BaseModel):
+    properties_imported: int
+    reservations_imported: int
+
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str

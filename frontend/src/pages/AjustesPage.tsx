@@ -3,10 +3,12 @@ import { useSearchParams } from 'react-router-dom'
 import { AuditPage } from './AuditPage'
 import { EquipoPage } from './EquipoPage'
 import { GuestSimPage } from './GuestSimPage'
+import { IntegracionesPage } from './IntegracionesPage'
 import { MetricsPage } from './MetricsPage'
 
 const TABS = [
   { key: 'equipo', label: 'Equipo' },
+  { key: 'integraciones', label: 'Integraciones' },
   { key: 'metricas', label: 'Métricas' },
   { key: 'auditoria', label: 'Auditoría' },
   { key: 'simulador', label: 'Simulador (demo)' },
@@ -36,6 +38,7 @@ export function AjustesPage() {
       </div>
 
       {tab === 'equipo' ? <EquipoPage /> : null}
+      {tab === 'integraciones' ? <IntegracionesPage /> : null}
       {tab === 'metricas' ? <MetricsPage /> : null}
       {tab === 'auditoria' ? <AuditPage /> : null}
       {tab === 'simulador' ? <GuestSimPage /> : null}

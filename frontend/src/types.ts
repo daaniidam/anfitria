@@ -18,6 +18,14 @@ export interface OnboardingStatus {
   has_conversation: boolean
 }
 
+export interface IntegrationProvider {
+  id: string
+  name: string
+  available: boolean
+  connected: boolean
+  account: string | null
+}
+
 export interface Building {
   id: number
   name: string

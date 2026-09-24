@@ -4,6 +4,7 @@ import type {
   Conversation,
   InboundResult,
   InboxItem,
+  IntegrationProvider,
   KnowledgeItem,
   Message,
   Metrics,
@@ -47,6 +48,18 @@ export const AuditApi = {
 
 export const OnboardingApi = {
   status: () => api<OnboardingStatus>('/onboarding'),
+}
+
+export const IntegrationsApi = {
+  list: () => api<IntegrationProvider[]>('/integrations'),
+  connect: (id: string) =>
+    api<IntegrationProvider>(`/integrations/${id}/connect`, { method: 'POST' }),
+  disconnect: (id: string) => api<void>(`/integrations/${id}/disconnect`, { method: 'POST' }),
+  sync: (id: string) =>
+    api<{ properties_imported: number; reservations_imported: number }>(
+      `/integrations/${id}/sync`,
+      { method: 'POST' },
+    ),
 }
 
 export const OrgApi = {

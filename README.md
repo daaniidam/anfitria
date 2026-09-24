@@ -35,6 +35,13 @@ pendientes, conversaciones en vivo y KPIs. Un clic lleva a la conversación:
 
 ![Hoy](docs/img/hoy.jpg)
 
+**Integraciones (PMS / Channel Manager)** — en vez de recrear la cartera a mano,
+el gestor conecta su PMS y **sincroniza**: pisos y reservas entran solos (y no se
+duplican al resincronizar). Adaptador `demo` funcional; los reales se enchufan
+con sus credenciales sin tocar la lógica:
+
+![Integraciones](docs/img/integraciones.jpg)
+
 **Primeros pasos** — un anfitrión nuevo no se queda ante un panel vacío: un
 checklist le guía (crea piso → completa/importa la ficha → pruébalo) y se
 auto-completa con sus datos:
