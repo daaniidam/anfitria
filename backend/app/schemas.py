@@ -56,6 +56,23 @@ class PMSSyncResult(BaseModel):
     reservations_imported: int
 
 
+class WhatsAppConnect(BaseModel):
+    business_name: str = Field(min_length=1, max_length=120)
+    phone: str = Field(min_length=5, max_length=32)
+
+
+class WhatsAppStatus(BaseModel):
+    connected: bool
+    phone: str | None = None
+    templates_approved: bool = False
+    pisos_assigned: int = 0
+    total_pisos: int = 0
+
+
+class WhatsAppAssign(BaseModel):
+    property_id: int
+
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str

@@ -26,6 +26,14 @@ export interface IntegrationProvider {
   account: string | null
 }
 
+export interface WhatsAppStatus {
+  connected: boolean
+  phone: string | null
+  templates_approved: boolean
+  pisos_assigned: number
+  total_pisos: number
+}
+
 export interface Building {
   id: number
   name: string
@@ -38,6 +46,7 @@ export interface Property {
   default_language: string
   auto_answer: boolean
   auto_answer_threshold: number | null
+  whatsapp_phone_number_id: string | null
   building_id: number | null
 }
 

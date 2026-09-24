@@ -19,6 +19,7 @@ from app.api import (
     properties,
     reservations,
     whatsapp,
+    whatsapp_setup,
 )
 from app.config import get_settings
 from app.db import init_db
@@ -111,6 +112,9 @@ def create_app() -> FastAPI:
     app.include_router(audit.router)
     app.include_router(org.router)
     app.include_router(onboarding.router)
+    # whatsapp_setup antes que integrations: sus rutas literales /integrations/whatsapp/*
+    # deben ganar al comodín /integrations/{provider}/* del router genérico.
+    app.include_router(whatsapp_setup.router)
     app.include_router(integrations.router)
     return app
 

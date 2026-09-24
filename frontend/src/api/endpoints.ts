@@ -15,6 +15,7 @@ import type {
   Reservation,
   ReservationListItem,
   User,
+  WhatsAppStatus,
 } from '../types'
 import { api, apiUpload } from './client'
 
@@ -48,6 +49,20 @@ export const AuditApi = {
 
 export const OnboardingApi = {
   status: () => api<OnboardingStatus>('/onboarding'),
+}
+
+export const WhatsAppApi = {
+  status: () => api<WhatsAppStatus>('/integrations/whatsapp'),
+  connect: (body: { business_name: string; phone: string }) =>
+    api<WhatsAppStatus>('/integrations/whatsapp/connect', { method: 'POST', body }),
+  approveTemplates: () =>
+    api<WhatsAppStatus>('/integrations/whatsapp/templates', { method: 'POST' }),
+  assign: (propertyId: number) =>
+    api<WhatsAppStatus>('/integrations/whatsapp/assign', {
+      method: 'POST',
+      body: { property_id: propertyId },
+    }),
+  disconnect: () => api<void>('/integrations/whatsapp/disconnect', { method: 'POST' }),
 }
 
 export const IntegrationsApi = {

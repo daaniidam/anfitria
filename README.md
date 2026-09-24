@@ -35,6 +35,12 @@ pendientes, conversaciones en vivo y KPIs. Un clic lleva a la conversación:
 
 ![Hoy](docs/img/hoy.jpg)
 
+**Conectar WhatsApp Business** — un asistente guiado de 4 pasos: **conecta tu
+número** (verificación de Meta simulada) → **aprueba las plantillas** → **actívalo
+en tus pisos** → **pruébalo**. Cada paso se completa solo:
+
+![Conectar WhatsApp](docs/img/whatsapp.jpg)
+
 **Integraciones (PMS / Channel Manager)** — en vez de recrear la cartera a mano,
 el gestor conecta su PMS y **sincroniza**: pisos y reservas entran solos (y no se
 duplican al resincronizar). Adaptador `demo` funcional; los reales se enchufan

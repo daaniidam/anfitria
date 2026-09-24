@@ -5,9 +5,11 @@ import { EquipoPage } from './EquipoPage'
 import { GuestSimPage } from './GuestSimPage'
 import { IntegracionesPage } from './IntegracionesPage'
 import { MetricsPage } from './MetricsPage'
+import { WhatsAppSetupPage } from './WhatsAppSetupPage'
 
 const TABS = [
   { key: 'equipo', label: 'Equipo' },
+  { key: 'whatsapp', label: 'WhatsApp' },
   { key: 'integraciones', label: 'Integraciones' },
   { key: 'metricas', label: 'Métricas' },
   { key: 'auditoria', label: 'Auditoría' },
@@ -38,6 +40,7 @@ export function AjustesPage() {
       </div>
 
       {tab === 'equipo' ? <EquipoPage /> : null}
+      {tab === 'whatsapp' ? <WhatsAppSetupPage /> : null}
       {tab === 'integraciones' ? <IntegracionesPage /> : null}
       {tab === 'metricas' ? <MetricsPage /> : null}
       {tab === 'auditoria' ? <AuditPage /> : null}

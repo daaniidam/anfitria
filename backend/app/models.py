@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from datetime import UTC, date, datetime
 
-from sqlalchemy import Date, DateTime, Float, ForeignKey, String, Text
+from sqlalchemy import JSON, Date, DateTime, Float, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -231,6 +231,8 @@ class Integration(Base):
     provider: Mapped[str] = mapped_column(String(32))
     status: Mapped[str] = mapped_column(String(16), default="connected")  # connected | disconnected
     account: Mapped[str | None] = mapped_column(String(120), default=None)
+    # Estado específico del proveedor (p. ej. phone_number_id y plantillas de WhatsApp).
+    config: Mapped[dict | None] = mapped_column(JSON, default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
