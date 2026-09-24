@@ -9,6 +9,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from app.api import (
     audit,
     auth,
+    billing,
     buildings,
     conversations,
     integrations,
@@ -116,6 +117,7 @@ def create_app() -> FastAPI:
     # deben ganar al comodín /integrations/{provider}/* del router genérico.
     app.include_router(whatsapp_setup.router)
     app.include_router(integrations.router)
+    app.include_router(billing.router)
     return app
 
 

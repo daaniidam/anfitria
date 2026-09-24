@@ -1,5 +1,6 @@
 import type {
   AuditLog,
+  BillingStatus,
   Building,
   Conversation,
   InboundResult,
@@ -63,6 +64,11 @@ export const WhatsAppApi = {
       body: { property_id: propertyId },
     }),
   disconnect: () => api<void>('/integrations/whatsapp/disconnect', { method: 'POST' }),
+}
+
+export const BillingApi = {
+  status: () => api<BillingStatus>('/billing'),
+  setPlan: (plan: string) => api<BillingStatus>('/billing/plan', { method: 'POST', body: { plan } }),
 }
 
 export const IntegrationsApi = {

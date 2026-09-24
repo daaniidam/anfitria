@@ -73,6 +73,27 @@ class WhatsAppAssign(BaseModel):
     property_id: int
 
 
+class PlanOut(BaseModel):
+    id: str
+    name: str
+    price_eur: int
+    max_properties: int
+    current: bool
+
+
+class BillingStatus(BaseModel):
+    plan: str
+    plan_name: str
+    price_eur: int
+    max_properties: int
+    properties_used: int
+    plans: list[PlanOut]
+
+
+class PlanSelect(BaseModel):
+    plan: str = Field(pattern="^(free|starter|pro|business)$")
+
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str

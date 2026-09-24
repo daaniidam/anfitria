@@ -35,6 +35,12 @@ pendientes, conversaciones en vivo y KPIs. Un clic lleva a la conversación:
 
 ![Hoy](docs/img/hoy.jpg)
 
+**Facturación y planes** — SaaS por nº de pisos (Prueba/Starter/Pro/Business).
+El **límite de pisos se aplica de verdad** (paywall) y el plan se cambia desde el
+panel; el pago está simulado en la demo:
+
+![Facturación](docs/img/facturacion.jpg)
+
 **Conectar WhatsApp Business** — un asistente guiado de 4 pasos: **conecta tu
 número** (verificación de Meta simulada) → **aprueba las plantillas** → **actívalo
 en tus pisos** → **pruébalo**. Cada paso se completa solo:

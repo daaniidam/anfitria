@@ -22,6 +22,8 @@ class Organization(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(160))
+    # Plan de suscripción: free | starter | pro | business
+    plan: Mapped[str] = mapped_column(String(16), default="free")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     members: Mapped[list[User]] = relationship(back_populates="organization")

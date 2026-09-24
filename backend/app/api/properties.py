@@ -1,12 +1,12 @@
 """Pisos y su ficha de conocimiento."""
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.adapters.embeddings.factory import get_embedding_provider
 from app.db import get_session
 from app.deps import get_current_user, require_owner
-from app.models import KnowledgeItem, Property, User
+from app.models import KnowledgeItem, Organization, Property, User
 from app.schemas import (
     KnowledgeCreate,
     KnowledgeImportOut,
@@ -16,6 +16,7 @@ from app.schemas import (
     PropertyOut,
     PropertyUpdate,
 )
+from app.services import plans
 from app.services.import_knowledge import parse_upload
 
 MAX_IMPORT_BYTES = 5_000_000  # 5 MB
@@ -50,6 +51,23 @@ async def create_property(
         from app.api.buildings import get_owned_building
 
         await get_owned_building(session, data.building_id, user)
+
+    # Límite del plan (paywall).
+    org = await session.get(Organization, user.org_id)
+    used = int(
+        (
+            await session.execute(
+                select(func.count()).select_from(Property).where(Property.org_id == user.org_id)
+            )
+        ).scalar_one()
+        or 0
+    )
+    if used >= plans.max_properties(org.plan if org else "free"):
+        raise HTTPException(
+            status_code=402,
+            detail="Has alcanzado el límite de pisos de tu plan. Mejóralo en Facturación.",
+        )
+
     prop = Property(
         owner_id=user.id,
         org_id=user.org_id,
