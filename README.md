@@ -160,6 +160,14 @@ docker compose up --build
 - API: http://localhost:8000  ·  Health: http://localhost:8000/health  ·  Docs: http://localhost:8000/docs
 - Web: http://localhost:5173
 
+**Datos de demo** (opcional, para probar sin crear todo a mano): siembra un
+anfitrión y tres pisos con su ficha.
+```bash
+docker compose exec api uv run python -m scripts.seed
+```
+Acceso: `demo@anfitria.com` / `Demo12345!`. Al usar `EMBED_PROVIDER=local` (por
+defecto en compose), la primera consulta descarga el modelo de embeddings (una vez).
+
 ### Sin Docker (solo backend)
 ```bash
 cd backend
