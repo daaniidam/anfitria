@@ -36,8 +36,11 @@ flowchart TD
 ## Componentes (y dónde están)
 
 - **Embeddings** (`adapters/embeddings/`): convierten texto en vectores
-  normalizados. Adaptador `mock` (bolsa de palabras con hashing, sin clave, para
-  demo/tests) conmutable por uno real (OpenAI/Voyage) sin tocar la lógica.
+  normalizados. Dos adaptadores conmutables por `EMBED_PROVIDER`:
+  - `mock`: bolsa de palabras con hashing, sin dependencias ni descargas (tests/CI).
+  - `local`: transformer multilingüe `paraphrase-multilingual-MiniLM-L12-v2` vía
+    fastembed (ONNX, **sin clave y sin torch**), con semántica real. Cada proveedor
+    define su propio umbral de recuperación (la escala de coseno depende del modelo).
 - **Recuperación** (`services/retrieval.py`): similitud coseno entre la consulta y
   cada fragmento del piso **+ el conocimiento compartido de su edificio**. Devuelve
   los `k` mejores por encima de un umbral, con su `score` (para las citas).
@@ -67,9 +70,24 @@ flowchart TD
 - **Aprender con contexto, sin relleno.** Se guarda *pregunta → respuesta* (para
   que una respuesta corta siga teniendo sentido) y **nunca** los mensajes de
   espera ("lo confirmo y te respondo"), que no son respuestas.
-- **Embeddings mock vs reales.** El `mock` (bolsa de palabras) basta para demostrar
-  el RAG sin coste ni claves; capta coincidencias léxicas pero no sinónimos. Un
-  proveedor real de embeddings entiende el significado; se conmuta por `settings`.
+- **Embeddings mock vs locales.** El `mock` (bolsa de palabras) arranca sin
+  descargas y vale para tests/CI, pero solo capta coincidencias léxicas: un huésped
+  que parafrasea ("¿cómo me conecto a internet?" en vez de "wifi") no encuentra
+  nada. El proveedor `local` (MiniLM multilingüe) entiende el significado, sigue sin
+  necesitar clave, y la mejora está **medida** (ver abajo). Un proveedor de API
+  (OpenAI/Voyage) se añadiría igual, tras la misma interfaz.
+
+## Evaluación (medir, no suponer)
+
+`eval/` contiene un harness que mide la calidad de recuperación sobre un dataset
+con preguntas **parafraseadas** a propósito. Mide la decisión (responder vs
+escalar) y si recupera el fragmento correcto. Ejecuta `uv run python -m eval.run`.
+Resultado (mejora del léxico al semántico):
+
+| Proveedor | Decisión | Recuperación |
+|---|---|---|
+| mock (bolsa de palabras) | 46 % | 30 % |
+| local (MiniLM, semántico) | 92 % | 100 % |
 
 ## Qué se ve (RAG visible)
 

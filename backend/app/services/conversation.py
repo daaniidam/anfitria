@@ -129,7 +129,13 @@ async def handle_inbound(
     # RAG: recuperar los fragmentos más relevantes (para el mock y como señal de confianza)
     embedder = get_embedding_provider()
     query_embedding = embedder.embed([text])[0]
-    hits = await retrieve(session, property.id, query_embedding, building_id=property.building_id)
+    hits = await retrieve(
+        session,
+        property.id,
+        query_embedding,
+        building_id=property.building_id,
+        threshold=embedder.retrieval_threshold,
+    )
     knowledge = [hit.content for hit in hits]
     top_score = hits[0].score if hits else 0.0
 

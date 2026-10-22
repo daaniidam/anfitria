@@ -139,10 +139,15 @@ conocimiento que la ancle, **escala** en vez de inventar; y de cada respuesta de
 anfitrión **aprende** (pregunta + respuesta) para escalar cada vez menos.
 Detalle del pipeline y las decisiones: [`docs/RAG.md`](docs/RAG.md).
 
+**Medido, no supuesto:** el harness de `eval/` (`uv run python -m eval.run`) evalúa
+la recuperación con preguntas parafraseadas. El salto del léxico al semántico:
+recuperación **30 % → 100 %**, decisión **46 % → 92 %**.
+
 ## Stack
 - **Backend:** Python 3.12 · FastAPI (async) · SQLAlchemy 2 async · Alembic · Redis + ARQ · uv
 - **BD:** PostgreSQL 16 + pgvector (RAG)
 - **IA:** adaptador `mock` (sin clave) | `anthropic` (Claude)
+- **Embeddings:** `mock` (bolsa de palabras) | `local` (MiniLM multilingüe vía fastembed/ONNX, semántico, sin clave)
 - **Canal:** adaptador `sim` (WhatsApp simulado) | `whatsapp_cloud` (Meta Cloud API)
 - **Frontend:** React + TypeScript + Vite + TailwindCSS
 - **Infra:** Docker Compose (`db`, `redis`, `api`, `worker`, `web`)

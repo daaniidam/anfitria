@@ -27,7 +27,9 @@ def upgrade() -> None:
         sa.Column("category", sa.String(length=64), nullable=False),
         sa.Column("score", sa.Float(), nullable=False),
         sa.ForeignKeyConstraint(["draft_id"], ["drafts.id"]),
-        sa.ForeignKeyConstraint(["knowledge_item_id"], ["knowledge_items.id"]),
+        sa.ForeignKeyConstraint(
+            ["knowledge_item_id"], ["knowledge_items.id"], ondelete="SET NULL"
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(

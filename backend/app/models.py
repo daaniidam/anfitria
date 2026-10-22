@@ -226,8 +226,10 @@ class DraftCitation(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     draft_id: Mapped[int] = mapped_column(ForeignKey("drafts.id"), index=True)
+    # ON DELETE SET NULL: si se borra el conocimiento de origen, la cita conserva
+    # su snapshot (content/category/score) y solo pierde la referencia.
     knowledge_item_id: Mapped[int | None] = mapped_column(
-        ForeignKey("knowledge_items.id"), default=None
+        ForeignKey("knowledge_items.id", ondelete="SET NULL"), default=None
     )
     content: Mapped[str] = mapped_column(Text)
     category: Mapped[str] = mapped_column(String(64), default="general")
