@@ -141,7 +141,8 @@ Detalle del pipeline y las decisiones: [`docs/RAG.md`](docs/RAG.md).
 
 **Medido, no supuesto:** el harness de `eval/` (`uv run python -m eval.run`) evalúa
 la recuperación con preguntas parafraseadas. El salto del léxico al semántico:
-recuperación **30 % → 100 %**, decisión **46 % → 92 %**.
+recuperación **30 % → 70 %**, decisión **46 % → 77 %** (umbral sesgado a la
+seguridad: mejor escalar que arriesgar una respuesta equivocada).
 
 ## Stack
 - **Backend:** Python 3.12 · FastAPI (async) · SQLAlchemy 2 async · Alembic · Redis + ARQ · uv

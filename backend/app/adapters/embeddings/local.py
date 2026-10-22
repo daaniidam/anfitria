@@ -15,7 +15,9 @@ _MODEL_NAME = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 
 
 class LocalEmbeddings(EmbeddingProvider):
-    retrieval_threshold = 0.25
+    # Sesgado a la seguridad: por debajo de ~0.30, los matches semánticos son demasiado
+    # débiles y el mock (que no comprende) soltaría respuestas equivocadas. Mejor escalar.
+    retrieval_threshold = 0.30
 
     def __init__(self) -> None:
         from fastembed import TextEmbedding

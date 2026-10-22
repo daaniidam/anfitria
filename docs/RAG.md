@@ -87,7 +87,14 @@ Resultado (mejora del léxico al semántico):
 | Proveedor | Decisión | Recuperación |
 |---|---|---|
 | mock (bolsa de palabras) | 46 % | 30 % |
-| local (MiniLM, semántico) | 92 % | 100 % |
+| local (MiniLM, semántico) | 77 % | 70 % |
+
+El umbral del proveedor local (0.30) está **sesgado a la seguridad**: con estos
+embeddings no hay un corte que separe limpio los aciertos de los falsos positivos
+(una paráfrasis válida y un match irrelevante pueden puntuar igual), así que se
+prefiere **escalar antes que arriesgar una respuesta equivocada**. Un modelo que
+razona (Claude) recupera esos casos límite: lee el fragmento y decide si de verdad
+responde la pregunta.
 
 ## Qué se ve (RAG visible)
 
