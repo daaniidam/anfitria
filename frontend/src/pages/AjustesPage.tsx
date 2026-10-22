@@ -1,16 +1,14 @@
 import { useSearchParams } from 'react-router-dom'
 
 import { AuditPage } from './AuditPage'
+import { ConfiguracionPage } from './ConfiguracionPage'
 import { EquipoPage } from './EquipoPage'
 import { GuestSimPage } from './GuestSimPage'
-import { IntegracionesPage } from './IntegracionesPage'
 import { MetricsPage } from './MetricsPage'
-import { WhatsAppSetupPage } from './WhatsAppSetupPage'
 
 const TABS = [
+  { key: 'configuracion', label: 'Puesta en marcha' },
   { key: 'equipo', label: 'Equipo' },
-  { key: 'whatsapp', label: 'WhatsApp' },
-  { key: 'integraciones', label: 'Integraciones' },
   { key: 'metricas', label: 'Métricas' },
   { key: 'auditoria', label: 'Auditoría' },
   { key: 'simulador', label: 'Simulador (demo)' },
@@ -18,7 +16,7 @@ const TABS = [
 
 export function AjustesPage() {
   const [params, setParams] = useSearchParams()
-  const tab = TABS.some((t) => t.key === params.get('tab')) ? params.get('tab')! : 'equipo'
+  const tab = TABS.some((t) => t.key === params.get('tab')) ? params.get('tab')! : 'configuracion'
 
   return (
     <div className="flex flex-col gap-5">
@@ -39,9 +37,8 @@ export function AjustesPage() {
         ))}
       </div>
 
+      {tab === 'configuracion' ? <ConfiguracionPage /> : null}
       {tab === 'equipo' ? <EquipoPage /> : null}
-      {tab === 'whatsapp' ? <WhatsAppSetupPage /> : null}
-      {tab === 'integraciones' ? <IntegracionesPage /> : null}
       {tab === 'metricas' ? <MetricsPage /> : null}
       {tab === 'auditoria' ? <AuditPage /> : null}
       {tab === 'simulador' ? <GuestSimPage /> : null}
