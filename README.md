@@ -13,6 +13,9 @@ el anfitrión **aprueba, edita o envía** desde un panel, con registro de todo.
 > y todo arranca sin claves ni coste (`mock`/`sim`). Ver el roadmap y las
 > [capturas](#interfaz).
 
+> **Presentación del proyecto:** [`docs/case-study/`](docs/case-study/index.html) —
+> una página que cuenta el problema, la solución, el RAG medido y el camino a producción.
+
 ## API (Fase 2)
 - `POST /auth/register` · `POST /auth/login` · `GET /auth/me`
 - `POST /properties` · `GET /properties` · `POST/GET /properties/{id}/knowledge`
