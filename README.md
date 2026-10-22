@@ -13,6 +13,9 @@ el anfitrión **aprueba, edita o envía** desde un panel, con registro de todo.
 > y todo arranca sin claves ni coste (`mock`/`sim`). Ver el roadmap y las
 > [capturas](#interfaz).
 
+> **Presentación del proyecto:** [`docs/case-study/`](docs/case-study/index.html) —
+> una página que cuenta el problema, la solución, el RAG medido y el camino a producción.
+
 ## API (Fase 2)
 - `POST /auth/register` · `POST /auth/login` · `GET /auth/me`
 - `POST /properties` · `GET /properties` · `POST/GET /properties/{id}/knowledge`
@@ -131,10 +134,24 @@ Los pisos turísticos sin recepción reciben las mismas preguntas una y otra vez
 del anfitrión. AnfitrIA automatiza esa atención **sin perder el control**: IA
 supervisada, multi-idioma (ES/EN) y trazable.
 
+## Cómo funciona la IA (RAG)
+Cada respuesta se **ancla** en la ficha del piso (recuperación por similitud),
+se mide su **confianza** (modelo × recuperación) y se guardan las **citas** que la
+sustentan — visibles en el simulador, la bandeja y la auditoría. Si no hay
+conocimiento que la ancle, **escala** en vez de inventar; y de cada respuesta del
+anfitrión **aprende** (pregunta + respuesta) para escalar cada vez menos.
+Detalle del pipeline y las decisiones: [`docs/RAG.md`](docs/RAG.md).
+
+**Medido, no supuesto:** el harness de `eval/` (`uv run python -m eval.run`) evalúa
+la recuperación con preguntas parafraseadas. El salto del léxico al semántico:
+recuperación **30 % → 70 %**, decisión **46 % → 77 %** (umbral sesgado a la
+seguridad: mejor escalar que arriesgar una respuesta equivocada).
+
 ## Stack
 - **Backend:** Python 3.12 · FastAPI (async) · SQLAlchemy 2 async · Alembic · Redis + ARQ · uv
 - **BD:** PostgreSQL 16 + pgvector (RAG)
 - **IA:** adaptador `mock` (sin clave) | `anthropic` (Claude)
+- **Embeddings:** `mock` (bolsa de palabras) | `local` (MiniLM multilingüe vía fastembed/ONNX, semántico, sin clave)
 - **Canal:** adaptador `sim` (WhatsApp simulado) | `whatsapp_cloud` (Meta Cloud API)
 - **Frontend:** React + TypeScript + Vite + TailwindCSS
 - **Infra:** Docker Compose (`db`, `redis`, `api`, `worker`, `web`)
@@ -146,6 +163,14 @@ docker compose up --build
 ```
 - API: http://localhost:8000  ·  Health: http://localhost:8000/health  ·  Docs: http://localhost:8000/docs
 - Web: http://localhost:5173
+
+**Datos de demo** (opcional, para probar sin crear todo a mano): siembra un
+anfitrión y tres pisos con su ficha.
+```bash
+docker compose exec api uv run python -m scripts.seed
+```
+Acceso: `demo@anfitria.com` / `Demo12345!`. Al usar `EMBED_PROVIDER=local` (por
+defecto en compose), la primera consulta descarga el modelo de embeddings (una vez).
 
 ### Sin Docker (solo backend)
 ```bash

@@ -8,7 +8,11 @@ import hashlib
 import math
 import re
 
-from app.adapters.embeddings.base import EMBEDDING_DIM, EmbeddingProvider
+from app.adapters.embeddings.base import (
+    DEFAULT_RETRIEVAL_THRESHOLD,
+    EMBEDDING_DIM,
+    EmbeddingProvider,
+)
 
 _WORD = re.compile(r"[a-z0-9áéíóúüñ]+", re.IGNORECASE)
 _STOP = {
@@ -23,6 +27,8 @@ def _tokens(text: str) -> list[str]:
 
 
 class MockEmbeddings(EmbeddingProvider):
+    retrieval_threshold = DEFAULT_RETRIEVAL_THRESHOLD
+
     def embed(self, texts: list[str]) -> list[list[float]]:
         return [self._embed_one(t) for t in texts]
 

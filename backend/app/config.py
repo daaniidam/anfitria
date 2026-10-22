@@ -37,6 +37,10 @@ class Settings(BaseSettings):
     # al anfitrión (y el huésped recibe igual un mensaje de espera inmediato).
     auto_answer_threshold: float = 0.55
 
+    # Embeddings: "mock" (bolsa de palabras, sin descargas) | "local" (transformer
+    # multilingüe local vía fastembed, semántica real). Por defecto mock (CI/tests).
+    embed_provider: str = "mock"
+
     # IA: "mock" (sin clave, por defecto) | "anthropic" (Claude real)
     ai_provider: str = "mock"
     anthropic_api_key: str | None = None

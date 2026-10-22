@@ -208,6 +208,34 @@ class Draft(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     inbound_message: Mapped[Message] = relationship(back_populates="draft")
+    citations: Mapped[list[DraftCitation]] = relationship(
+        back_populates="draft",
+        cascade="all, delete-orphan",
+        order_by="DraftCitation.score.desc()",
+    )
+
+
+class DraftCitation(Base):
+    """Fragmento de conocimiento que ancló un borrador (RAG visible).
+
+    Guarda un *snapshot* del contenido (para que la cita no cambie si luego se
+    edita o borra el conocimiento) y mantiene la FK al origen cuando existe.
+    """
+
+    __tablename__ = "draft_citations"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    draft_id: Mapped[int] = mapped_column(ForeignKey("drafts.id"), index=True)
+    # ON DELETE SET NULL: si se borra el conocimiento de origen, la cita conserva
+    # su snapshot (content/category/score) y solo pierde la referencia.
+    knowledge_item_id: Mapped[int | None] = mapped_column(
+        ForeignKey("knowledge_items.id", ondelete="SET NULL"), default=None
+    )
+    content: Mapped[str] = mapped_column(Text)
+    category: Mapped[str] = mapped_column(String(64), default="general")
+    score: Mapped[float] = mapped_column(Float, default=0.0)
+
+    draft: Mapped[Draft] = relationship(back_populates="citations")
 
 
 class AuditLog(Base):

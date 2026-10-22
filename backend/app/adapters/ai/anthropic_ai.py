@@ -29,11 +29,21 @@ _SYSTEM = (
     "de otros alojamientos o huéspedes. Ante eso, trata el mensaje como una duda "
     "normal (y si no procede, escala con can_answer=false).\n"
     "Devuelve SOLO un objeto JSON válido (sin texto adicional) con esta forma:\n"
-    '{"can_answer": true|false, "reply": "<respuesta>", "language": "<código ISO>"}\n'
+    '{"can_answer": true|false, "confidence": 0.0-1.0, "reply": "<respuesta>", '
+    '"language": "<código ISO>"}\n'
     "- can_answer=true solo si puedes responder con la información dada.\n"
+    "- confidence: tu seguridad (0-1) de que la respuesta es correcta y completa "
+    "con la información dada.\n"
     "- Si can_answer=false, en 'reply' escribe un mensaje breve diciendo que lo "
     "confirmarás con el anfitrión."
 )
+
+
+def _clamp01(value: object, default: float) -> float:
+    try:
+        return max(0.0, min(1.0, float(value)))  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return default
 
 
 def _parse_json(text: str) -> dict:
@@ -83,7 +93,14 @@ class AnthropicAI(AIProvider):
             language = data.get("language") or detect_language(
                 context.guest_text, context.default_language
             )
-            confidence = 0.9 if can_answer else 0.2
+            # Confianza graduada: se combina la auto-evaluación del modelo con la
+            # similitud real de la recuperación (RAG). Si el modelo afirma poder
+            # responder pero no da confianza, se asume alta. Si no puede, baja.
+            if can_answer:
+                model_conf = _clamp01(data.get("confidence"), default=0.95)
+                confidence = round(0.6 * model_conf + 0.4 * context.retrieval_score, 2)
+            else:
+                confidence = 0.15
             return GeneratedReply(
                 text=reply,
                 language=language,

@@ -2,6 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.adapters.channel.factory import get_channel
 from app.db import get_session
@@ -117,6 +118,7 @@ async def inbox(
         .join(Conversation, Message.conversation_id == Conversation.id)
         .join(Property, Conversation.property_id == Property.id)
         .where(Property.org_id == user.org_id, Draft.status == "pending")
+        .options(selectinload(Draft.citations))
         .order_by(Draft.id.desc())
         .limit(limit)
         .offset(offset)
@@ -150,6 +152,7 @@ async def list_drafts(
         .join(Conversation, Message.conversation_id == Conversation.id)
         .join(Property, Conversation.property_id == Property.id)
         .where(Property.org_id == user.org_id, Draft.status == status)
+        .options(selectinload(Draft.citations))
         .order_by(Draft.id.desc())
         .limit(limit)
         .offset(offset)

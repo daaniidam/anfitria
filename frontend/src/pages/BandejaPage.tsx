@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom'
 
 import { ConversationsApi, InboxApi, PropertiesApi, ReservationsApi } from '../api/endpoints'
 import { ConfidenceMeter } from '../components/ConfidenceMeter'
+import { SourceList } from '../components/SourceList'
 import { Button, Card, EmptyState, Tag, TextArea } from '../components/ui'
 import type { Conversation, InboxItem } from '../types'
 
@@ -70,6 +71,12 @@ export function BandejaPage() {
   }, [conversations, filter, pendingByConv])
 
   const selected = shown.find((c) => c.id === selectedId) ?? shown[0] ?? null
+
+  // Tras responder una escalada, saltar a la siguiente pendiente (menos clics).
+  const advanceToNextPending = (currentId: number) => {
+    const next = shown.find((c) => c.id !== currentId && pendingByConv.has(c.id))
+    if (next) setSelectedId(next.id)
+  }
 
   const FILTERS: { key: Filter; label: string; count: number }[] = [
     { key: 'pending', label: 'Pendientes', count: counts.pending },
@@ -149,6 +156,7 @@ export function BandejaPage() {
               conversation={selected}
               pending={pendingByConv.get(selected.id) ?? null}
               propertyName={nameOf(selected.property_id)}
+              onResolved={() => advanceToNextPending(selected.id)}
             />
           ) : (
             <EmptyState title="Elige una conversación">
@@ -165,10 +173,12 @@ function Detail({
   conversation,
   pending,
   propertyName,
+  onResolved,
 }: {
   conversation: Conversation
   pending: InboxItem | null
   propertyName: string
+  onResolved: () => void
 }) {
   const queryClient = useQueryClient()
   const { data: messages } = useQuery({
@@ -253,7 +263,7 @@ function Detail({
         )}
       </Card>
 
-      {pending ? <ApprovalBox item={pending} /> : null}
+      {pending ? <ApprovalBox item={pending} onResolved={onResolved} /> : null}
 
       <form onSubmit={onSend} className="flex gap-2">
         <input
@@ -271,7 +281,7 @@ function Detail({
 }
 
 /** Respuesta sugerida por la IA para una escalada: editar, aprender y enviar. */
-function ApprovalBox({ item }: { item: InboxItem }) {
+function ApprovalBox({ item, onResolved }: { item: InboxItem; onResolved: () => void }) {
   const queryClient = useQueryClient()
   const [text, setText] = useState(item.draft.text)
   const [save, setSave] = useState(true)
@@ -284,6 +294,7 @@ function ApprovalBox({ item }: { item: InboxItem }) {
       void queryClient.invalidateQueries({ queryKey: ['conv-messages', item.conversation_id] })
       void queryClient.invalidateQueries({ queryKey: ['conversations'] })
       void queryClient.invalidateQueries({ queryKey: ['metrics'] })
+      onResolved() // salta a la siguiente pendiente
     },
   })
 
@@ -301,7 +312,22 @@ function ApprovalBox({ item }: { item: InboxItem }) {
           </span>
         </p>
       ) : null}
-      <TextArea rows={3} value={text} onChange={(e) => setText(e.target.value)} />
+      {item.draft.citations.length > 0 ? (
+        <div className="mb-3">
+          <SourceList citations={item.draft.citations} />
+        </div>
+      ) : null}
+      <TextArea
+        rows={3}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && text.trim() && !approve.isPending) {
+            e.preventDefault()
+            approve.mutate()
+          }
+        }}
+      />
       <label className="mt-3 flex items-start gap-2.5 rounded-lg bg-sunk/60 px-3 py-2.5">
         <input
           type="checkbox"
@@ -316,7 +342,9 @@ function ApprovalBox({ item }: { item: InboxItem }) {
           </span>
         </span>
       </label>
-      <div className="mt-3 flex items-center justify-end gap-2">
+      <div className="mt-3 flex items-center justify-between gap-2">
+        <span className="hidden font-mono text-xs text-muted sm:inline">⌘/Ctrl + Enter</span>
+        <div className="flex items-center gap-2">
         {edited ? (
           <Button variant="ghost" onClick={() => setText(item.draft.text)}>
             Restablecer
@@ -329,6 +357,7 @@ function ApprovalBox({ item }: { item: InboxItem }) {
         >
           {approve.isPending ? 'Enviando…' : 'Responder al huésped'}
         </Button>
+        </div>
       </div>
     </Card>
   )

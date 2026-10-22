@@ -64,6 +64,12 @@ export interface Message {
   created_at: string
 }
 
+export interface Citation {
+  content: string
+  category: string
+  score: number
+}
+
 export interface Draft {
   id: number
   inbound_message_id: number
@@ -73,6 +79,7 @@ export interface Draft {
   model: string
   reason: string | null
   status: string
+  citations: Citation[]
 }
 
 export interface Conversation {

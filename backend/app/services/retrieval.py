@@ -5,12 +5,27 @@ El cálculo se hace en Python para funcionar igual en Postgres y SQLite; en
 producción, con muchos fragmentos, se cambiaría por el operador indexado de
 pgvector (`embedding <=> :query`) sin tocar el resto de la lógica.
 """
+from dataclasses import dataclass
+
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import KnowledgeItem
 
-RETRIEVAL_THRESHOLD = 0.25
+# Umbral de similitud para considerar un fragmento "relevante". Por debajo de ~0.4,
+# compartir una sola palabra común (p. ej. "piso") colaría conocimiento irrelevante
+# y la IA respondería con seguridad algo equivocado en vez de escalar.
+RETRIEVAL_THRESHOLD = 0.40
+
+
+@dataclass
+class Hit:
+    """Un fragmento recuperado por el RAG, con su origen y similitud (para las citas)."""
+
+    knowledge_item_id: int
+    content: str
+    category: str
+    score: float
 
 
 def _cosine(a: list[float], b: list[float]) -> float:
@@ -32,18 +47,23 @@ async def retrieve(
     building_id: int | None = None,
     k: int = 3,
     threshold: float = RETRIEVAL_THRESHOLD,
-) -> list[tuple[str, float]]:
+) -> list[Hit]:
     rows = await session.execute(
-        select(KnowledgeItem.content, KnowledgeItem.embedding).where(
+        select(
+            KnowledgeItem.id,
+            KnowledgeItem.content,
+            KnowledgeItem.category,
+            KnowledgeItem.embedding,
+        ).where(
             scope_clause(property_id, building_id),
             KnowledgeItem.embedding.isnot(None),
         )
     )
     scored = [
-        (content, _cosine(query_embedding, embedding))
-        for content, embedding in rows.all()
+        Hit(item_id, content, category, _cosine(query_embedding, embedding))
+        for item_id, content, category, embedding in rows.all()
         if embedding
     ]
-    relevant = [item for item in scored if item[1] >= threshold]
-    relevant.sort(key=lambda item: item[1], reverse=True)
+    relevant = [hit for hit in scored if hit.score >= threshold]
+    relevant.sort(key=lambda hit: hit.score, reverse=True)
     return relevant[:k]

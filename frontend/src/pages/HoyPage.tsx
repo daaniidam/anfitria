@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { ConversationsApi, InboxApi, ReservationsApi } from '../api/endpoints'
 import { Onboarding } from '../components/Onboarding'
@@ -62,9 +62,17 @@ export function HoyPage() {
   return (
     <div className="flex flex-col gap-5">
       <Onboarding />
-      <header>
-        <p className="eyebrow text-brand-ink">Panel</p>
-        <h1 className="mt-1 font-display text-2xl font-bold capitalize text-ink">Hoy · {longDate()}</h1>
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="eyebrow text-brand-ink">Panel</p>
+          <h1 className="mt-1 font-display text-2xl font-bold capitalize text-ink">Hoy · {longDate()}</h1>
+        </div>
+        <Link
+          to="/probar"
+          className="rounded-lg border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink transition hover:bg-sunk"
+        >
+          Probar como huésped →
+        </Link>
       </header>
 
       <TodaySummary />

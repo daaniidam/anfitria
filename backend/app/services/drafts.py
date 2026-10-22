@@ -1,6 +1,8 @@
 """Servicio de aprobación de borradores (respuesta a escaladas)."""
 from __future__ import annotations
 
+import re
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,6 +13,35 @@ from app.services.retrieval import _cosine
 
 # Si lo aprendido se parece mucho a algo ya guardado, se actualiza en vez de duplicar.
 LEARN_DEDUP_THRESHOLD = 0.9
+
+
+def _normalize(text: str) -> str:
+    """Minúsculas y sin signos, para comparar contra las plantillas de espera."""
+    return re.sub(r"[^a-z0-9áéíóúüñ ]", "", text.lower()).strip()
+
+
+def _holding_signatures() -> set[str]:
+    """Fragmentos distintivos de los mensajes de espera (en todos los idiomas).
+
+    Se derivan de las propias plantillas, así que si cambian no hay que tocar esto.
+    De cada plantilla con `{name}` se toma el segmento estático más largo (el tramo
+    distintivo, no el saludo genérico).
+    """
+    from app.adapters.ai.mock import _WAIT
+    from app.services.conversation import HOLDING
+
+    sigs = {_normalize(t) for t in HOLDING.values()}
+    for template in _WAIT.values():
+        sigs.add(max((_normalize(p) for p in template.split("{name}")), key=len))
+    return {s for s in sigs if s}
+
+
+def _is_learnable(text: str) -> bool:
+    """Los mensajes de espera son relleno de la IA, no respuestas: no se aprenden."""
+    norm = _normalize(text)
+    if not norm:
+        return False
+    return not any(sig in norm for sig in _holding_signatures())
 
 
 async def _dedup_learned(
@@ -62,27 +93,34 @@ async def approve_draft(
         )
     )
 
-    # Aprender: guardar la respuesta como conocimiento del piso para futuras dudas idénticas.
-    if save_to_knowledge and question:
+    # Aprender: guardar pregunta + respuesta como conocimiento del piso para futuras
+    # dudas similares. Se guardan JUNTAS para que una respuesta corta ("el 26") siga
+    # teniendo sentido al leerla y al recuperarla. Los mensajes de espera no se aprenden.
+    if save_to_knowledge and question and _is_learnable(text):
         embedder = get_embedding_provider()
-        # Se indexa con pregunta + respuesta para que la próxima duda similar la encuentre.
-        embedding = embedder.embed([f"{question}\n{text}"])[0]
+        content = f"{question.strip()} → {text}"
+        embedding = embedder.embed([content])[0]
         existing = await _dedup_learned(session, conversation.property_id, embedding)
         if existing is not None:
             # Ya había algo casi idéntico: se actualiza en vez de acumular duplicados.
-            existing.content = text
+            existing.content = content
             existing.embedding = embedding
         else:
             session.add(
                 KnowledgeItem(
                     property_id=conversation.property_id,
                     category="aprendido",
-                    content=text,
+                    content=content,
                     embedding=embedding,
                 )
             )
         session.add(
             AuditLog(actor="host", action="learned", conversation_id=conversation.id)
+        )
+    elif save_to_knowledge and question:
+        # Se pidió guardar pero no es aprendible (p. ej. un mensaje de espera): se omite.
+        session.add(
+            AuditLog(actor="host", action="learn_skipped", conversation_id=conversation.id)
         )
 
     await session.commit()
