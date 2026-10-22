@@ -30,7 +30,7 @@ export function ConfiguracionPage() {
       <Card className="p-4">
         <p className="text-sm text-ink">¿Todo conectado? Compruébalo escribiendo como un huésped.</p>
         <NavLink
-          to="/ajustes?tab=simulador"
+          to="/probar"
           className="mt-2 inline-flex rounded-lg bg-brand px-3 py-1.5 text-sm font-medium text-white transition hover:bg-brand-ink"
         >
           Abrir el simulador →

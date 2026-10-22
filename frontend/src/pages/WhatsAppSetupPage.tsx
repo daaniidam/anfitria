@@ -136,7 +136,7 @@ export function WhatsAppSetupPage() {
           Todo listo. Escribe como si fueras el huésped y comprueba que la IA responde.
         </p>
         <NavLink
-          to="/ajustes?tab=simulador"
+          to="/probar"
           className="inline-flex rounded-lg bg-brand px-3 py-1.5 text-sm font-medium text-white transition hover:bg-brand-ink"
         >
           Abrir el simulador →
