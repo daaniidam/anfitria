@@ -60,7 +60,9 @@ class MockAI(AIProvider):
         lead = _LEAD.get(language, _LEAD["es"])
 
         if context.knowledge:
-            best = context.knowledge[0]
+            # El conocimiento aprendido se guarda como "pregunta → respuesta"; al huésped
+            # solo le interesa la respuesta (Claude real lo redactaría; el mock lo recorta).
+            best = context.knowledge[0].split(" → ", 1)[-1]
             confidence = min(0.6 + 0.4 * context.retrieval_score, 0.97)
             text = f"{lead}{best}"
         elif context.stay_context:

@@ -131,6 +131,14 @@ Los pisos turísticos sin recepción reciben las mismas preguntas una y otra vez
 del anfitrión. AnfitrIA automatiza esa atención **sin perder el control**: IA
 supervisada, multi-idioma (ES/EN) y trazable.
 
+## Cómo funciona la IA (RAG)
+Cada respuesta se **ancla** en la ficha del piso (recuperación por similitud),
+se mide su **confianza** (modelo × recuperación) y se guardan las **citas** que la
+sustentan — visibles en el simulador, la bandeja y la auditoría. Si no hay
+conocimiento que la ancle, **escala** en vez de inventar; y de cada respuesta del
+anfitrión **aprende** (pregunta + respuesta) para escalar cada vez menos.
+Detalle del pipeline y las decisiones: [`docs/RAG.md`](docs/RAG.md).
+
 ## Stack
 - **Backend:** Python 3.12 · FastAPI (async) · SQLAlchemy 2 async · Alembic · Redis + ARQ · uv
 - **BD:** PostgreSQL 16 + pgvector (RAG)

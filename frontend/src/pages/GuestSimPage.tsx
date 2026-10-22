@@ -4,13 +4,17 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { ConversationsApi, PropertiesApi } from '../api/endpoints'
 import { ChatBubble } from '../components/ChatBubble'
+import { ConfidenceMeter } from '../components/ConfidenceMeter'
+import { SourceList } from '../components/SourceList'
 import { Button, Card, EmptyState } from '../components/ui'
+import type { Draft } from '../types'
 
 export function GuestSimPage() {
   const queryClient = useQueryClient()
   const { data: properties } = useQuery({ queryKey: ['properties'], queryFn: PropertiesApi.list })
   const [propertyId, setPropertyId] = useState<number | ''>('')
   const [conversationId, setConversationId] = useState<number | null>(null)
+  const [lastDraft, setLastDraft] = useState<Draft | null>(null)
   const [text, setText] = useState('')
 
   const guestRef = '+34 600 · demo'
@@ -31,6 +35,7 @@ export function GuestSimPage() {
       }),
     onSuccess: (result) => {
       setConversationId(result.conversation.id)
+      setLastDraft(result.draft)
       setText('')
       void queryClient.invalidateQueries({ queryKey: ['conv-messages', result.conversation.id] })
     },
@@ -73,6 +78,7 @@ export function GuestSimPage() {
           onChange={(e) => {
             setPropertyId(e.target.value === '' ? '' : Number(e.target.value))
             setConversationId(null)
+            setLastDraft(null)
           }}
           className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-brand focus:ring-2 focus:ring-brand-soft"
         >
@@ -124,6 +130,21 @@ export function GuestSimPage() {
           </Button>
         </form>
       </Card>
+
+      {lastDraft ? (
+        <Card className="flex flex-col gap-3 p-4">
+          <p className="eyebrow text-brand-ink">Por dentro de la última respuesta</p>
+          <ConfidenceMeter value={lastDraft.confidence} />
+          {lastDraft.citations.length > 0 ? (
+            <SourceList citations={lastDraft.citations} />
+          ) : (
+            <p className="text-sm text-muted">
+              No encontró nada en la ficha para anclar la respuesta, así que escaló al
+              anfitrión en vez de inventar.
+            </p>
+          )}
+        </Card>
+      ) : null}
     </div>
   )
 }

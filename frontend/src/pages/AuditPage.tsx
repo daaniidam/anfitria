@@ -11,6 +11,8 @@ const ACTION_LABEL: Record<string, string> = {
   approved_and_sent: 'Aprobado y enviado',
   edited_and_sent: 'Editado y enviado',
   learned: 'Aprendió la respuesta',
+  learn_skipped: 'No aprendió (mensaje de espera)',
+  handoff_inbound: 'Mensaje en atención en vivo',
 }
 
 function actorTone(actor: string): 'brand' | 'brass' {

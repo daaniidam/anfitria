@@ -119,7 +119,9 @@ class PropertyCreate(BaseModel):
     address: str | None = Field(default=None, max_length=500)
     default_language: str = Field(default="es", max_length=8)
     auto_answer: bool = True
-    auto_answer_threshold: float | None = Field(default=None, ge=0.0, le=1.0)
+    # Rango útil: por debajo de 0.3 respondería casi todo a ciegas; por encima de
+    # 0.95 sería inalcanzable (la confianza máxima del adaptador mock es 0.97).
+    auto_answer_threshold: float | None = Field(default=None, ge=0.3, le=0.95)
     whatsapp_phone_number_id: str | None = Field(default=None, max_length=64)
     building_id: int | None = None
 
@@ -128,7 +130,9 @@ class PropertyUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=120)
     default_language: str | None = Field(default=None, max_length=8)
     auto_answer: bool | None = None
-    auto_answer_threshold: float | None = Field(default=None, ge=0.0, le=1.0)
+    # Rango útil: por debajo de 0.3 respondería casi todo a ciegas; por encima de
+    # 0.95 sería inalcanzable (la confianza máxima del adaptador mock es 0.97).
+    auto_answer_threshold: float | None = Field(default=None, ge=0.3, le=0.95)
     whatsapp_phone_number_id: str | None = Field(default=None, max_length=64)
 
 
@@ -221,6 +225,14 @@ class MessageOut(BaseModel):
     created_at: datetime
 
 
+class CitationOut(BaseModel):
+    """Fragmento de conocimiento que ancló la respuesta de la IA (RAG visible)."""
+    model_config = ConfigDict(from_attributes=True)
+    content: str
+    category: str
+    score: float
+
+
 class DraftOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
@@ -231,6 +243,7 @@ class DraftOut(BaseModel):
     model: str
     reason: str | None = None
     status: str
+    citations: list[CitationOut] = []
 
 
 class ConversationOut(BaseModel):

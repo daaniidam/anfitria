@@ -16,6 +16,7 @@ from app.models import (
     AuditLog,
     Conversation,
     Draft,
+    DraftCitation,
     KnowledgeItem,
     Message,
     Notification,
@@ -129,8 +130,8 @@ async def handle_inbound(
     embedder = get_embedding_provider()
     query_embedding = embedder.embed([text])[0]
     hits = await retrieve(session, property.id, query_embedding, building_id=property.building_id)
-    knowledge = [content for content, _ in hits]
-    top_score = hits[0][1] if hits else 0.0
+    knowledge = [hit.content for hit in hits]
+    top_score = hits[0].score if hits else 0.0
 
     # Todo el conocimiento del piso + el compartido de su edificio (los modelos que razonan
     # semánticamente, como Claude, eligen ellos mismos lo relevante).
@@ -183,14 +184,28 @@ async def handle_inbound(
         status="pending",
     )
     session.add(draft)
+    # El detalle registra también en qué se ancló (RAG visible en la auditoría).
+    sources = ", ".join(f"{hit.category} {hit.score:.2f}" for hit in hits) if hits else "ninguna"
     session.add(
         AuditLog(
             actor="ai",
             action="draft_generated",
             conversation_id=conversation.id,
-            detail=f"confidence={reply.confidence:.2f} model={reply.model}",
+            detail=f"confianza={reply.confidence:.2f} · modelo={reply.model} · fuentes: {sources}",
         )
     )
+    # RAG visible: guardar qué fragmentos anclaron la respuesta (snapshot + score),
+    # para poder mostrarlos como citas y auditarlos ("IA supervisada, no caja negra").
+    # Se asignan a la relación (en memoria) para poder serializarlas sin recargar.
+    draft.citations = [
+        DraftCitation(
+            knowledge_item_id=hit.knowledge_item_id,
+            content=hit.content,
+            category=hit.category,
+            score=hit.score,
+        )
+        for hit in hits
+    ]
     await session.flush()
 
     channel = get_channel()

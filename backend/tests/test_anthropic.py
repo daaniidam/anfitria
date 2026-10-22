@@ -42,6 +42,23 @@ async def test_anthropic_answers_when_it_can():
     assert reply.language == "es"
 
 
+async def test_anthropic_confidence_blends_model_and_retrieval():
+    """La confianza combina la auto-evaluación del modelo con la similitud del RAG."""
+    client = _FakeClient(
+        '{"can_answer": true, "confidence": 0.5, "reply": "x", "language": "es"}'
+    )
+    ai = AnthropicAI(client=client)
+    low = await ai.generate_reply(
+        AIContext(guest_text="q", property_name="Piso", all_knowledge=["k"], retrieval_score=0.0)
+    )
+    high = await ai.generate_reply(
+        AIContext(guest_text="q", property_name="Piso", all_knowledge=["k"], retrieval_score=1.0)
+    )
+    # misma confianza de modelo, mayor recuperación -> mayor confianza final
+    assert high.confidence > low.confidence
+    assert low.confidence == 0.3  # 0.6*0.5 + 0.4*0.0
+
+
 async def test_anthropic_escalates_when_it_cannot():
     client = _FakeClient('{"can_answer": false, "reply": "Lo confirmo con el anfitrión.", "language": "es"}')
     ai = AnthropicAI(client=client)
