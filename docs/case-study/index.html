@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AnfitrIA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --ground: #e9ece9;
+    --surface: #ffffff;
+    --raised: #f3f6f3;
+    --ink: #142019;
+    --muted: #5a6b61;
+    --line: #d7e0d9;
+    --brand: #0e6b60;
+    --brand-deep: #0a544b;
+    --brand-soft: #d8e9e4;
+    --on-brand: #eaf4f0;
+    --brass: #b4791f;
+    --brass-ink: #875910;
+    --brass-soft: #f3e6ca;
+    --good: #2e8b57;
+    --warn: #b23a2a;
+    --shadow: 0 1px 2px rgba(20,32,25,.04), 0 8px 28px rgba(20,32,25,.06);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0b1310;
+      --surface: #11201a;
+      --raised: #152a22;
+      --ink: #e7efe9;
+      --muted: #9bada2;
+      --line: #24382e;
+      --brand: #3fa393;
+      --brand-deep: #2c8577;
+      --brand-soft: #11332c;
+      --on-brand: #eaf4f0;
+      --brass: #d79b3f;
+      --brass-ink: #e9b968;
+      --brass-soft: #2d2411;
+      --good: #4fb07a;
+      --warn: #e07a5f;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0b1310;
+    --surface: #11201a;
+    --raised: #152a22;
+    --ink: #e7efe9;
+    --muted: #9badA2;
+    --line: #24382e;
+    --brand: #3fa393;
+    --brand-deep: #2c8577;
+    --brand-soft: #11332c;
+    --on-brand: #eaf4f0;
+    --brass: #d79b3f;
+    --brass-ink: #e9b968;
+    --brass-soft: #2d2411;
+    --good: #4fb07a;
+    --warn: #e07a5f;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { width: 100%; max-width: 1080px; margin-inline: auto; padding-inline: 24px; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .72rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--brand); margin: 0;
+  }
+  :root[data-theme="dark"] .eyebrow, :root:not([data-theme="light"]) .eyebrow { color: var(--brand); }
+  h1, h2, h3 { font-family: "Bricolage Grotesque", "IBM Plex Sans", sans-serif; text-wrap: balance; margin: 0; line-height: 1.04; letter-spacing: -.015em; }
+  h2 { font-size: clamp(1.7rem, 4vw, 2.5rem); font-weight: 700; }
+  h3 { font-size: 1.18rem; font-weight: 700; letter-spacing: -.01em; }
+  p { margin: 0; }
+  a { color: var(--brand-deep); }
+  :root[data-theme="dark"] a, :root:not([data-theme="light"]) a { color: var(--brand); }
+
+  /* ---- Hero ---- */
+  .hero { background: #0a544b; color: #eaf4f0; position: relative; overflow: hidden; }
+  .hero::after {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(120% 90% at 85% -10%, rgba(180,121,31,.22), transparent 55%),
+                radial-gradient(90% 70% at -10% 110%, rgba(63,163,147,.25), transparent 60%);
+    pointer-events: none;
+  }
+  .hero .wrap { padding-block: 64px 72px; position: relative; z-index: 1; }
+  .brandline { display: flex; align-items: center; gap: 12px; margin-bottom: 56px; }
+  .mark { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 10px; background: #0e6b60; color: #fff; font-family: "Bricolage Grotesque"; font-weight: 800; font-size: 1.1rem; box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
+  .brandname { font-family: "Bricolage Grotesque"; font-weight: 800; font-size: 1.15rem; letter-spacing: -.01em; }
+  .brandtag { font-family: "IBM Plex Mono", monospace; font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; color: rgba(234,244,240,.6); margin-left: 4px; }
+  .hero .eyebrow { color: rgba(234,244,240,.72); }
+  .hero h1 { font-size: clamp(2.4rem, 6.2vw, 4.1rem); font-weight: 800; max-width: 16ch; margin-top: 14px; }
+  .hero .lede { margin-top: 20px; max-width: 54ch; font-size: 1.12rem; color: rgba(234,244,240,.85); }
+  .pills { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 30px; }
+  .pill { font-family: "IBM Plex Mono", monospace; font-size: .76rem; letter-spacing: .02em; padding: 7px 13px; border-radius: 999px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16); color: rgba(234,244,240,.92); }
+
+  /* ---- Sections ---- */
+  section { padding-block: clamp(48px, 7vw, 84px); }
+  .sec-head { max-width: 62ch; margin-bottom: 36px; display: flex; flex-direction: column; gap: 14px; }
+  .sec-head p.sub { color: var(--muted); font-size: 1.08rem; }
+
+  .cols { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--shadow); }
+  .card .num { font-family: "IBM Plex Mono", monospace; font-size: .72rem; font-weight: 600; color: var(--brass-ink); letter-spacing: .05em; }
+  .card p { color: var(--muted); font-size: .98rem; }
+
+  /* ---- Pipeline ---- */
+  .pipe { display: flex; flex-wrap: wrap; align-items: stretch; gap: 10px; }
+  .step { flex: 1 1 140px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .step .k { font-family: "IBM Plex Mono", monospace; font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .step .v { font-weight: 600; font-size: .98rem; line-height: 1.25; }
+  .step.accent { border-color: var(--brass); background: var(--brass-soft); }
+  .step.accent .v { color: var(--brass-ink); }
+
+  /* ---- Measured (eval) ---- */
+  .measure { display: grid; gap: 22px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); align-items: stretch; }
+  .metric { background: #0a544b; color: #eaf4f0; border-radius: 18px; padding: 28px; display: flex; flex-direction: column; gap: 6px; }
+  .metric .lab { font-family: "IBM Plex Mono", monospace; font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; color: rgba(234,244,240,.65); }
+  .metric .big { font-family: "Bricolage Grotesque"; font-weight: 800; font-size: clamp(2.6rem, 7vw, 3.6rem); line-height: 1; letter-spacing: -.02em; display: flex; align-items: baseline; gap: 12px; font-variant-numeric: tabular-nums; }
+  .metric .from { color: rgba(234,244,240,.5); font-size: .5em; font-weight: 700; }
+  .metric .arrow { color: var(--brass); }
+  .metric .to { color: #e9c27a; }
+  .metric .note { color: rgba(234,244,240,.78); font-size: .92rem; margin-top: 4px; }
+  .quote { border-left: 3px solid var(--brass); padding-left: 18px; color: var(--muted); font-size: 1.05rem; max-width: 60ch; }
+
+  /* ---- Shots ---- */
+  .shots { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .shot { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow); }
+  .shot img { display: block; width: 100%; height: auto; border-bottom: 1px solid var(--line); }
+  .shot figcaption { padding: 14px 18px; font-size: .92rem; color: var(--muted); }
+  .shot figcaption b { color: var(--ink); font-weight: 600; }
+
+  /* ---- Stack ---- */
+  .stack { display: grid; gap: 14px 24px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .stack .row { display: flex; gap: 12px; align-items: baseline; padding-block: 10px; border-bottom: 1px solid var(--line); }
+  .stack .row dt { font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); flex: 0 0 92px; }
+  .stack .row dd { margin: 0; font-size: .96rem; font-weight: 500; }
+
+  /* ---- Roadmap ---- */
+  .road { display: grid; gap: 28px; grid-template-columns: 1fr 1.2fr; align-items: start; }
+  .road .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 24px; box-shadow: var(--shadow); }
+  .road h3 { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .road ul { list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+  .road li { display: grid; grid-template-columns: 22px 1fr; gap: 12px; align-items: start; }
+  .road li > div { display: flex; flex-direction: column; gap: 3px; }
+  .road li .t { display: block; font-weight: 600; font-size: .98rem; }
+  .road li .d { display: block; color: var(--muted); font-size: .9rem; }
+  .tick { width: 20px; height: 20px; border-radius: 6px; display: grid; place-items: center; font-size: .72rem; font-weight: 700; margin-top: 2px; }
+  .tick.done { background: var(--brand-soft); color: var(--brand-deep); }
+  :root[data-theme="dark"] .tick.done, :root:not([data-theme="light"]) .tick.done { color: var(--brand); }
+  .tick.todo { background: var(--brass-soft); color: var(--brass-ink); }
+  .chip { font-family: "IBM Plex Mono", monospace; font-size: .64rem; letter-spacing: .1em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; font-weight: 600; }
+  .chip.done { background: var(--brand-soft); color: var(--brand-deep); }
+  :root[data-theme="dark"] .chip.done, :root:not([data-theme="light"]) .chip.done { color: var(--brand); }
+  .chip.todo { background: var(--brass-soft); color: var(--brass-ink); }
+
+  /* ---- Footer ---- */
+  footer { border-top: 1px solid var(--line); padding-block: 40px 56px; }
+  .foot { display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; align-items: center; }
+  .foot .who { font-size: .95rem; color: var(--muted); }
+  .foot .who b { color: var(--ink); font-weight: 600; }
+  .ghost { display: inline-flex; align-items: center; gap: 8px; font-family: "IBM Plex Mono", monospace; font-size: .8rem; letter-spacing: .04em; padding: 9px 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); text-decoration: none; }
+  .ghost:hover { background: var(--raised); }
+
+  .divider { height: 1px; background: var(--line); }
+
+  /* ---- Modes table ---- */
+  .tablewrap { overflow-x: auto; border-radius: 16px; border: 1px solid var(--line); box-shadow: var(--shadow); }
+  table.modes { width: 100%; border-collapse: collapse; background: var(--surface); font-size: .97rem; min-width: 520px; }
+  table.modes th, table.modes td { text-align: left; padding: 15px 20px; border-top: 1px solid var(--line); vertical-align: top; }
+  table.modes thead th { border-top: 0; background: var(--raised); font-family: "IBM Plex Mono", monospace; font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  table.modes tbody th { font-family: "IBM Plex Mono", monospace; font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; width: 118px; white-space: nowrap; }
+  table.modes td:last-child, table.modes thead th:last-child { background: var(--brand-soft); color: var(--ink); }
+  table.modes td:last-child b { color: var(--brass-ink); }
+  table.modes td { color: var(--muted); }
+
+  @media (max-width: 720px) {
+    body { font-size: 16px; }
+    .road { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .ghost { transition: background .15s ease; }
+  }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <div class="brandline">
+      <span class="mark">A</span>
+      <span class="brandname">AnfitrIA</span>
+      <span class="brandtag">conserje supervisado</span>
+    </div>
+    <p class="eyebrow">Conserje con IA supervisada · Alquiler vacacional</p>
+    <h1>Tu piso responde a los huéspedes. Tú tienes la última palabra.</h1>
+    <p class="lede">
+      Los pisos turísticos sin recepción reciben las mismas preguntas a todas horas.
+      AnfitrIA las atiende por WhatsApp con respuestas <b>ancladas a la ficha de cada
+      piso</b>, y cuando no está segura, <b>escala al anfitrión</b> en vez de inventar.
+    </p>
+    <div class="pills">
+      <span class="pill">Atiende por WhatsApp</span>
+      <span class="pill">RAG anclado a cada piso</span>
+      <span class="pill">Aprende de cada escalada</span>
+      <span class="pill">IA supervisada, no caja negra</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section>
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">El problema</p>
+        <h2>Las mismas preguntas, una y otra vez, a cualquier hora.</h2>
+        <p class="sub">
+          Check-in, wifi, cómo llegar, normas, parking. Hoy las contesta el anfitrión
+          por teléfono o WhatsApp: consume su tiempo y deja al huésped esperando.
+          Automatizarlo es fácil; automatizarlo <b>sin que la IA se invente datos</b>
+          es lo difícil.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">La solución</p>
+        <h2>Un conserje que sabe lo que sabe —y lo que no.</h2>
+      </div>
+      <div class="cols">
+        <div class="card">
+          <span class="num">01</span>
+          <h3>Responde con la ficha</h3>
+          <p>Cada respuesta se ancla en el conocimiento del piso (wifi, check-in, normas…) mediante recuperación semántica.</p>
+        </div>
+        <div class="card">
+          <span class="num">02</span>
+          <h3>Supervisión real</h3>
+          <p>Si la confianza es baja o falta información, escala: el huésped recibe un aviso y el anfitrión responde desde el panel.</p>
+        </div>
+        <div class="card">
+          <span class="num">03</span>
+          <h3>Aprende sola</h3>
+          <p>Al resolver una escalada, la respuesta se guarda en la ficha. La próxima vez que pregunten lo mismo, responde sola.</p>
+        </div>
+        <div class="card">
+          <span class="num">04</span>
+          <h3>Multi-idioma</h3>
+          <p>Detecta el idioma del huésped y responde en el suyo (ES · EN · FR · DE · IT), con el contexto de su reserva.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">Cómo funciona</p>
+        <h2>El recorrido de cada mensaje.</h2>
+        <p class="sub">Un pipeline de RAG con supervisión y aprendizaje en el bucle.</p>
+      </div>
+      <div class="pipe">
+        <div class="step"><span class="k">Entra</span><span class="v">Mensaje del huésped</span></div>
+        <div class="step"><span class="k">Representa</span><span class="v">Embedding de la consulta</span></div>
+        <div class="step"><span class="k">Recupera</span><span class="v">Fragmentos de la ficha (RAG)</span></div>
+        <div class="step accent"><span class="k">Decide</span><span class="v">IA genera + confianza</span></div>
+        <div class="step"><span class="k">Actúa</span><span class="v">Responde sola · o escala</span></div>
+        <div class="step"><span class="k">Mejora</span><span class="v">Aprende de la escalada</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">La diferencia</p>
+        <h2>RAG visible y medido.</h2>
+        <p class="sub">
+          Lo que distingue a AnfitrIA de "un CRUD con un chatbot": la recuperación no es
+          una caja negra, y su calidad está <b>medida con un harness de evaluación</b>, no supuesta.
+        </p>
+      </div>
+      <div class="measure">
+        <div class="metric">
+          <span class="lab">Recuperación · acierto</span>
+          <span class="big"><span class="from">30%</span><span class="arrow">→</span><span class="to">70%</span></span>
+          <span class="note">Al pasar de embeddings léxicos (bolsa de palabras) a semánticos locales (MiniLM multilingüe).</span>
+        </div>
+        <div class="metric">
+          <span class="lab">Decisión · responder vs escalar</span>
+          <span class="big"><span class="from">46%</span><span class="arrow">→</span><span class="to">77%</span></span>
+          <span class="note">Medido sobre preguntas parafraseadas que la coincidencia de palabras no capta.</span>
+        </div>
+      </div>
+      <p class="quote" style="margin-top:28px">
+        El umbral está <b>sesgado a la seguridad</b>: ante una señal débil, prefiere
+        <b>escalar antes que arriesgar una respuesta equivocada</b>. Y cada respuesta
+        guarda las <b>citas</b> que la anclaron —fragmento, categoría y % de similitud—,
+        visibles en el simulador, la bandeja y la auditoría: se <i>ve</i> en qué se basó.
+      </p>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">Diseño adaptable</p>
+        <h2>Gratis para probar. Claude para ir en serio.</h2>
+        <p class="sub">
+          Cada pieza —IA, embeddings, canal— es un <b>adaptador conmutable</b>. La demo
+          arranca sin claves ni coste; en producción se enchufa el modelo de pago y el
+          canal real <b>sin tocar la lógica de negocio</b>.
+        </p>
+      </div>
+      <div class="tablewrap">
+        <table class="modes">
+          <thead>
+            <tr><th scope="col">Pieza</th><th scope="col">Demo · sin clave</th><th scope="col">Producción</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">IA</th>
+              <td>mock determinista: repite el fragmento recuperado</td>
+              <td><b>Claude</b> razona sobre la ficha: entiende la intención y escala con criterio lo que falta</td>
+            </tr>
+            <tr>
+              <th scope="row">Embeddings</th>
+              <td>bolsa de palabras (léxico)</td>
+              <td>semánticos: local (MiniLM) o API gestionada</td>
+            </tr>
+            <tr>
+              <th scope="row">Canal</th>
+              <td>simulador integrado</td>
+              <td>WhatsApp Cloud API</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="quote" style="margin-top:24px">
+        Por eso la demo se ve honesta, pero algo literal: con <b>Claude</b> conectado,
+        distingue "¿cuál es el <i>nombre</i> del wifi?" de la contraseña y pide lo que
+        falta, en vez de soltar lo primero que encuentra.
+      </p>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">Así se ve</p>
+        <h2>El producto, por dentro.</h2>
+      </div>
+      <div class="shots">
+        <figure class="shot">
+          <img src="shot-rag.jpg" alt="Simulador de chat mostrando la respuesta de la IA y, debajo, la confianza y el fragmento de la ficha en que se ancló.">
+          <figcaption><b>RAG visible.</b> El huésped pregunta "¿cómo me conecto a internet?" —sin la palabra wifi— y la IA responde anclada a la ficha, mostrando confianza y fuente.</figcaption>
+        </figure>
+        <figure class="shot">
+          <img src="shot-hoy.jpg" alt="Panel del día con KPIs de llegadas, salidas, pendientes y conversaciones en vivo.">
+          <figcaption><b>El panel del día.</b> Llegadas, salidas, cola de pendientes y conversaciones en vivo, de un vistazo.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">Stack</p>
+        <h2>Decisiones guiadas por el problema.</h2>
+      </div>
+      <div class="stack">
+        <div class="row"><dt>Backend</dt><dd>Python · FastAPI async · worker ARQ</dd></div>
+        <div class="row"><dt>Datos</dt><dd>PostgreSQL 16 + pgvector (RAG)</dd></div>
+        <div class="row"><dt>IA</dt><dd>Claude (anthropic) · adaptador mock sin clave</dd></div>
+        <div class="row"><dt>Embeddings</dt><dd>MiniLM multilingüe local (fastembed/ONNX)</dd></div>
+        <div class="row"><dt>Canal</dt><dd>WhatsApp Cloud API · simulador integrado</dd></div>
+        <div class="row"><dt>Frontend</dt><dd>React · TypeScript · Vite · Tailwind</dd></div>
+        <div class="row"><dt>Infra</dt><dd>Docker Compose · Alembic · CI (GitHub Actions)</dd></div>
+        <div class="row"><dt>Calidad</dt><dd>69 tests backend + 5 frontend · harness de evaluación</dd></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">Camino a producción</p>
+        <h2>Qué está resuelto y qué falta para ir en serio.</h2>
+        <p class="sub">
+          Honestidad por delante: es una base técnica sólida y una demo completa. El salto a
+          un servicio con huéspedes reales tiene trabajo bien acotado —sobre todo operativo y legal.
+        </p>
+      </div>
+      <div class="road">
+        <div class="panel">
+          <h3><span class="chip done">Resuelto</span> La base técnica</h3>
+          <ul>
+            <li><span class="tick done">✓</span><div><span class="t">Arquitectura de producción</span><span class="d">Async, worker en cola, adaptadores conmutables, migraciones Alembic.</span></div></li>
+            <li><span class="tick done">✓</span><div><span class="t">RAG visible + confianza graduada</span><span class="d">Citas con similitud; la confianza combina modelo y recuperación.</span></div></li>
+            <li><span class="tick done">✓</span><div><span class="t">Embeddings semánticos + evaluación</span><span class="d">Harness que mide la calidad; recuperación del 30% al 70%.</span></div></li>
+            <li><span class="tick done">✓</span><div><span class="t">Seguridad base</span><span class="d">Cookies httpOnly, CSRF, firma HMAC del webhook, rate limiting.</span></div></li>
+            <li><span class="tick done">✓</span><div><span class="t">Trazabilidad</span><span class="d">Auditoría de cada decisión de la IA y del anfitrión.</span></div></li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3><span class="chip todo">Pendiente</span> Para huéspedes reales</h3>
+          <ul>
+            <li><span class="tick todo">→</span><div><span class="t">Alta real de WhatsApp Business</span><span class="d">Verificación de empresa por Meta, plantillas aprobadas, ventana de 24 h y opt-in del huésped. Es el mayor trabajo operativo.</span></div></li>
+            <li><span class="tick todo">→</span><div><span class="t">Escala de la recuperación</span><span class="d">Operador indexado de pgvector (ANN) para muchos pisos, o un proveedor de embeddings gestionado.</span></div></li>
+            <li><span class="tick todo">→</span><div><span class="t">Evaluación continua</span><span class="d">Ampliar el harness a un set real, calibrar la confianza y alertar de regresiones de calidad.</span></div></li>
+            <li><span class="tick todo">→</span><div><span class="t">Gestión del conocimiento</span><span class="d">Detectar información caduca o contradictoria que la IA haya aprendido; revisión periódica.</span></div></li>
+            <li><span class="tick todo">→</span><div><span class="t">Observabilidad y legal</span><span class="d">Monitorización y alertas de fallos, mensajes no-texto (foto/audio), y cumplimiento GDPR de los datos del huésped.</span></div></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <p class="who"><b>AnfitrIA</b> — proyecto de <b>Daniel López</b>. Conserje con IA supervisada para alquiler vacacional.</p>
+    <a class="ghost" href="https://github.com/daaniidam/anfitria" target="_blank" rel="noopener">Ver el repositorio ↗</a>
+  </div>
+</footer>
+</body>
+</html>

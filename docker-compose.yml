@@ -26,6 +26,10 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://anfitria:anfitria@db:5432/anfitria
       REDIS_URL: redis://redis:6379/0
+      # Embeddings: local (MiniLM multilingüe, sin clave) para una demo con buena
+      # recuperación semántica. Pon EMBED_PROVIDER=mock para evitar la descarga del
+      # modelo. Los tests usan mock por defecto (sin descargas).
+      EMBED_PROVIDER: ${EMBED_PROVIDER:-local}
       # IA: por defecto mock. Para usar Claude, crea un .env con
       # AI_PROVIDER=anthropic y ANTHROPIC_API_KEY=sk-ant-...
       AI_PROVIDER: ${AI_PROVIDER:-mock}
@@ -58,6 +62,10 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://anfitria:anfitria@db:5432/anfitria
       REDIS_URL: redis://redis:6379/0
+      EMBED_PROVIDER: ${EMBED_PROVIDER:-local}
+      AI_PROVIDER: ${AI_PROVIDER:-mock}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-opus-5}
     volumes:
       - ./backend:/app
     depends_on:

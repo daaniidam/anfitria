@@ -56,21 +56,21 @@ async def test_reason_manual(client):
 @pytest.mark.asyncio
 async def test_per_property_threshold(client):
     headers = await register_and_login(client, email="r4@test.com")
-    pid = await _prop(client, headers, auto_answer_threshold=0.99)
+    pid = await _prop(client, headers, auto_answer_threshold=0.95)
     await client.post(
         f"/properties/{pid}/knowledge",
         json={"category": "wifi", "content": "La contraseña del wifi es CASA-1234"},
         headers=headers,
     )
-    # Umbral altísimo: aunque encuentre el wifi, no llega → escala.
+    # Umbral al máximo: aunque encuentre el wifi, la confianza no llega → escala.
     r = await _inbound(client, headers, pid, "¿cuál es la contraseña del wifi?", guest="+34601")
     assert r.json()["answered"] is False
 
     # Bajamos el umbral (PATCH) → ahora responde sola.
     patch = await client.patch(
-        f"/properties/{pid}", json={"auto_answer_threshold": 0.1}, headers=headers
+        f"/properties/{pid}", json={"auto_answer_threshold": 0.3}, headers=headers
     )
     assert patch.status_code == 200
-    assert patch.json()["auto_answer_threshold"] == 0.1
+    assert patch.json()["auto_answer_threshold"] == 0.3
     r = await _inbound(client, headers, pid, "¿cuál es la contraseña del wifi?", guest="+34602")
     assert r.json()["answered"] is True

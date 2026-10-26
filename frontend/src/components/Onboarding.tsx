@@ -48,7 +48,7 @@ export function Onboarding() {
       label: 'Pruébalo con un huésped',
       hint: 'Escribe como si fueras el huésped y mira cómo responde.',
       done: data.has_conversation,
-      to: '/simulador',
+      to: '/probar',
       cta: 'Abrir simulador',
     },
   ]
