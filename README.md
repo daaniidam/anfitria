@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/daaniidam/anfitria/actions/workflows/ci.yml/badge.svg)](https://github.com/daaniidam/anfitria/actions/workflows/ci.yml)
 
-**Conserje con IA supervisada para alquiler vacacional (Airbnb).** Atiende a los
+**Conserje con IA supervisada para alquiler vacacional hoteles, hostales y airbnb.** Atiende a los
 huéspedes por WhatsApp con respuestas ancladas a la información de cada piso;
 el anfitrión **aprueba, edita o envía** desde un panel, con registro de todo.
 
