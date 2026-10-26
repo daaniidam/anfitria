@@ -1,231 +1,222 @@
-# AnfitrIA 🏨🤖
+# AnfitrIA
 
 [![CI](https://github.com/daaniidam/anfitria/actions/workflows/ci.yml/badge.svg)](https://github.com/daaniidam/anfitria/actions/workflows/ci.yml)
 
-**Conserje con IA supervisada para alquiler vacacional (Airbnb).** Atiende a los
-huéspedes por WhatsApp con respuestas ancladas a la información de cada piso;
-el anfitrión **aprueba, edita o envía** desde un panel, con registro de todo.
+Un conserje con IA para pisos turísticos. Los huéspedes preguntan por WhatsApp
+—el wifi, a qué hora es el check-in, cómo llegar…— y la IA les contesta con la
+información de cada piso. Lo importante: solo responde cuando de verdad tiene la
+info; si no la tiene, avisa al huésped y le pasa la pregunta al anfitrión en vez
+de inventarse una respuesta.
 
-> Estado: **producto completo (fases 1-7)**. La IA responde sola por WhatsApp
-> anclándose en la ficha del piso (RAG + pgvector, o Claude); cuando duda, avisa
-> al huésped y **escala** al anfitrión — que puede **guardar su respuesta para que
-> la IA la aprenda**. Conocimiento **compartido por edificio**, panel de métricas,
-> y todo arranca sin claves ni coste (`mock`/`sim`). Ver el roadmap y las
-> [capturas](#interfaz).
+Lo hice como proyecto de portfolio al terminar el grado de DAM. Quería construir
+algo más real que un CRUD de prácticas y, de paso, aprender a hacer un RAG en
+condiciones (que la IA conteste basándose en unos datos concretos, no "de
+memoria").
 
-> **Presentación del proyecto:** [`docs/case-study/`](docs/case-study/index.html) —
-> una página que cuenta el problema, la solución, el RAG medido y el camino a producción.
+Es una demo completa y funcional, **no un producto en producción**. Arranca sin
+claves ni coste y con datos de ejemplo. Lo que faltaría para usarlo de verdad lo
+cuento al final, sin adornos.
 
-## API (Fase 2)
-- `POST /auth/register` · `POST /auth/login` · `GET /auth/me`
-- `POST /properties` · `GET /properties` · `POST/GET /properties/{id}/knowledge`
-- `POST /properties/{id}/knowledge/import` — sube un CSV o PDF y crea la ficha de golpe
-- `POST /channels/sim/inbound` — simula un mensaje de huésped → la IA **responde sola** si tiene confianza; si no, envía aviso de espera y **escala**
-- `GET /conversations` · `GET /conversations/{id}/messages`
-- `GET /inbox` — escaladas pendientes (enriquecidas) · `POST /drafts/{id}/approve` — responder al huésped (con `edited_text` opcional)
+Hay una página que lo resume (problema, solución y decisiones técnicas) en
+[`docs/case-study/`](docs/case-study/index.html).
 
-Explora todo en `http://localhost:8000/docs`.
+## Lo que más me interesaba: que no se invente cosas
 
-## Interfaz
+El reto de verdad no era que la IA contestara, sino que **supiera cuándo no
+sabe**. Así lo resolví:
 
-Panel del anfitrión (React + TypeScript + Tailwind) organizado como un **puesto
-de trabajo**, no como un menú de secciones: **Hoy · Conversaciones · Alojamientos
-· Ajustes**. Usable también en **móvil** (menú deslizante), con **avisos** y
-**confirmación** antes de borrar.
+- Cada respuesta se ancla en la ficha del piso (busca los fragmentos que más se
+  parecen a la pregunta). Guardo las "citas" que usó y un % de confianza, así se
+  puede ver en qué se apoyó. No es una caja negra.
+- Si no encuentra nada que encaje, **escala**: el huésped recibe un "déjame
+  confirmarlo" y la pregunta le llega al anfitrión.
+- Cuando el anfitrión contesta, esa respuesta se guarda en la ficha. La próxima
+  vez que pregunten lo mismo, la IA ya responde sola.
 
-**Hoy** — el cockpit del día de un vistazo: llegadas y salidas, cola de
-pendientes, conversaciones en vivo y KPIs. Un clic lleva a la conversación:
+Y no me fié de "parece que va mejor": me monté un pequeño sistema de evaluación
+(`eval/`) con preguntas parafraseadas. Pasar de buscar por palabras a buscar por
+significado subió la recuperación del 30 % al 70 %. El umbral está puesto del
+lado seguro: ante la duda, prefiere escalar a arriesgar una respuesta mal. El
+detalle del pipeline y las decisiones están en [`docs/RAG.md`](docs/RAG.md).
+
+## La interfaz
+
+El panel (React + TypeScript + Tailwind) está pensado como un puesto de trabajo,
+no como un menú de opciones: **Hoy · Conversaciones · Alojamientos · Ajustes**.
+Funciona también en móvil, con avisos y confirmación antes de borrar.
+
+Hoy, el resumen del día: llegadas, salidas, lo que está pendiente y las
+conversaciones en vivo.
 
 ![Hoy](docs/img/hoy.jpg)
 
-**Conectar WhatsApp Business** — un asistente guiado de 4 pasos: **conecta tu
-número** (verificación de Meta simulada) → **aprueba las plantillas** → **actívalo
-en tus pisos** → **pruébalo**. Cada paso se completa solo:
+El asistente para conectar un número de WhatsApp Business, en cuatro pasos.
 
 ![Conectar WhatsApp](docs/img/whatsapp.jpg)
 
-**Integraciones (PMS / Channel Manager)** — en vez de recrear la cartera a mano,
-el gestor conecta su PMS y **sincroniza**: pisos y reservas entran solos (y no se
-duplican al resincronizar). Adaptador `demo` funcional; los reales se enchufan
-con sus credenciales sin tocar la lógica:
+Integraciones con PMS / Channel Manager: en vez de meter la cartera a mano, se
+conecta y se sincroniza (y no se duplica al volver a sincronizar). El adaptador
+`demo` funciona; los reales se enchufan con sus credenciales.
 
 ![Integraciones](docs/img/integraciones.jpg)
 
-**Primeros pasos** — un anfitrión nuevo no se queda ante un panel vacío: un
-checklist le guía (crea piso → completa/importa la ficha → pruébalo) y se
-auto-completa con sus datos:
+Un checklist de primeros pasos para que un anfitrión nuevo no se quede ante un
+panel vacío.
 
 ![Primeros pasos](docs/img/onboarding.jpg)
 
-**Simulador de huésped** — la IA responde **al instante**; si no sabe algo,
-manda un aviso de espera y lo escala (el huésped nunca se queda sin respuesta):
+El simulador de huésped: escribes como si fueras el huésped y ves la respuesta al
+instante (o el aviso de espera si la IA escala).
 
 ![Simulador de huésped](docs/img/simulador.jpg)
 
-**Bandeja** — arranca con un **resumen de hoy** (llegadas, salidas, pendientes,
-en vivo) y todas las conversaciones en un sitio, con filtros **Pendientes /
-En vivo / Todas**. Al abrir una, ves el hilo, la **respuesta sugerida por la IA**
-(con su medidor de confianza) para editarla y enviarla, **por qué escaló**
-(no tenía info / poca confianza / modo manual), y puedes **tomar el control**
-para atender en vivo. La **sensibilidad** de la IA se ajusta por piso desde *Pisos*:
+La Bandeja reúne todas las conversaciones. Al abrir una ves el hilo, la respuesta
+que sugiere la IA con su medidor de confianza, por qué escaló, y puedes tomar el
+control para atender tú en vivo.
 
 ![Bandeja](docs/img/bandeja.jpg)
 
-**Métricas** — cuánto resuelve la IA sola, escaladas y tiempo ahorrado:
+Métricas: cuánto resuelve la IA sola, cuántas escala y el tiempo que ahorra.
 
 ![Métricas](docs/img/metricas.jpg)
 
-**La IA aprende** — al responder una escalada, el anfitrión puede marcar
-*«Guardar en la ficha del piso»*: la próxima vez que pregunten lo mismo,
-la IA responde sola:
+Cuando el anfitrión responde una escalada, puede marcar "guardar en la ficha" y
+la IA lo aprende para la próxima.
 
 ![Aprendizaje](docs/img/aprendizaje.jpg)
 
-**Edificios** — agrupa pisos y comparte lo común (cómo llegar, portal,
-parking, zonas comunes) con todos ellos de una vez:
+Los edificios agrupan pisos y comparten lo común (cómo llegar, portal, parking…)
+entre todos a la vez.
 
 ![Edificios](docs/img/edificios.jpg)
 
-**Atención en vivo (handoff)** — desde la Bandeja, el anfitrión puede **tomar el
-control** de una conversación: la IA se aparta y responde una persona en tiempo
-real. Cuando quiera, devuelve el control a la IA.
-
-**Equipo (multiusuario y roles)** — varias personas comparten la misma cartera:
-el **propietario** gestiona el equipo e invita miembros; los **miembros** operan
-(responden, editan fichas) pero no borran pisos. Datos aislados por organización.
+También hay atención en vivo (el anfitrión toma el control y la IA se aparta),
+equipo con roles (propietario y miembros, datos aislados por organización):
 
 ![Equipo](docs/img/equipo.jpg)
 
-**Reservas** — todas las reservas del propietario en una vista, con **de dónde
-vienen** (Booking · Airbnb · directa) y la **fase de la estancia** (pre-llegada /
-alojado / salida). La IA responde con fechas concretas (*«tu check-in es mañana a
-las 15:00»*) y cada conversación queda ligada a su reserva. Se conecta con
-**Booking/Airbnb** importando el calendario **iCal (.ics)** del anuncio.
-Multi-idioma **ES/EN/FR/DE/IT**.
+Reservas con su origen (Booking · Airbnb · directa) y la fase de la estancia, de
+modo que la IA puede dar fechas concretas ("tu check-in es mañana a las 15:00").
+Se conecta con Booking/Airbnb importando el calendario iCal. Multi-idioma
+(ES/EN/FR/DE/IT).
 
 ![Reservas](docs/img/reservas.jpg)
 
-**Importar la ficha (CSV/PDF)** — un gestor con muchos pisos no teclea a mano:
-sube un CSV (categoría, contenido) o el PDF del manual del piso y se trocea e
-indexa automáticamente.
+Para no teclear la ficha a mano, se puede importar desde un CSV o el PDF del
+manual del piso, que se trocea e indexa solo.
 
 ![Importar conocimiento](docs/img/importar.jpg)
 
-**Auditoría** — trazabilidad completa: qué decidió la IA y qué hizo el
-anfitrión, con la hora. *IA supervisada, no caja negra.*
+Y una auditoría de todo: qué decidió la IA y qué hizo el anfitrión, con la hora.
 
 ![Auditoría](docs/img/auditoria.jpg)
-
-**Avisos y tendencia** — la campana avisa al anfitrión de cada escalada (no
-depende de estar mirando); las métricas muestran la actividad día a día. Y el
-conocimiento se puede **editar o borrar** en línea.
 
 | Avisos de escalada | Editar / borrar conocimiento |
 |:---:|:---:|
 | ![Avisos](docs/img/avisos.jpg) | ![Editar conocimiento](docs/img/editar-conocimiento.jpg) |
 
-| Acceso | Pisos y conocimiento (con modo auto/manual por piso) |
+| Acceso | Pisos y conocimiento |
 |:---:|:---:|
 | ![Login](docs/img/login.jpg) | ![Pisos](docs/img/pisos-conocimiento.jpg) |
 
-## Por qué
-Los pisos turísticos sin recepción reciben las mismas preguntas una y otra vez
-(check-in, wifi, cómo llegar, normas, recomendaciones), hoy por llamada/WhatsApp
-del anfitrión. AnfitrIA automatiza esa atención **sin perder el control**: IA
-supervisada, multi-idioma (ES/EN) y trazable.
+## La API
 
-## Cómo funciona la IA (RAG)
-Cada respuesta se **ancla** en la ficha del piso (recuperación por similitud),
-se mide su **confianza** (modelo × recuperación) y se guardan las **citas** que la
-sustentan — visibles en el simulador, la bandeja y la auditoría. Si no hay
-conocimiento que la ancle, **escala** en vez de inventar; y de cada respuesta del
-anfitrión **aprende** (pregunta + respuesta) para escalar cada vez menos.
-Detalle del pipeline y las decisiones: [`docs/RAG.md`](docs/RAG.md).
+- `POST /auth/register` · `POST /auth/login` · `GET /auth/me`
+- `POST /properties` · `GET /properties` · `POST/GET /properties/{id}/knowledge`
+- `POST /properties/{id}/knowledge/import` — sube un CSV o PDF y crea la ficha de golpe
+- `POST /channels/sim/inbound` — simula un mensaje de huésped: la IA responde sola si tiene confianza; si no, avisa y escala
+- `GET /conversations` · `GET /conversations/{id}/messages`
+- `GET /inbox` — escaladas pendientes · `POST /drafts/{id}/approve` — responder al huésped
 
-**Medido, no supuesto:** el harness de `eval/` (`uv run python -m eval.run`) evalúa
-la recuperación con preguntas parafraseadas. El salto del léxico al semántico:
-recuperación **30 % → 70 %**, decisión **46 % → 77 %** (umbral sesgado a la
-seguridad: mejor escalar que arriesgar una respuesta equivocada).
+Está todo navegable en `http://localhost:8000/docs`.
 
-## Stack
-- **Backend:** Python 3.12 · FastAPI (async) · SQLAlchemy 2 async · Alembic · Redis + ARQ · uv
-- **BD:** PostgreSQL 16 + pgvector (RAG)
-- **IA:** adaptador `mock` (sin clave) | `anthropic` (Claude)
-- **Embeddings:** `mock` (bolsa de palabras) | `local` (MiniLM multilingüe vía fastembed/ONNX, semántico, sin clave)
-- **Canal:** adaptador `sim` (WhatsApp simulado) | `whatsapp_cloud` (Meta Cloud API)
-- **Frontend:** React + TypeScript + Vite + TailwindCSS
-- **Infra:** Docker Compose (`db`, `redis`, `api`, `worker`, `web`)
+## Qué lleva por dentro
 
-## Arranque rápido
+- **Backend:** Python 3.12, FastAPI (async), SQLAlchemy 2 async, Alembic, Redis + ARQ, uv
+- **Base de datos:** PostgreSQL 16 + pgvector (para el RAG)
+- **IA:** adaptador `mock` (sin clave) o `anthropic` (Claude de verdad)
+- **Embeddings:** `mock` (bolsa de palabras) o `local` (un modelo multilingüe que corre en local, sin clave)
+- **WhatsApp:** adaptador `sim` (simulado) o `whatsapp_cloud` (Meta Cloud API)
+- **Frontend:** React + TypeScript + Vite + Tailwind
+- **Infra:** Docker Compose (db, redis, api, worker, web)
+
+Casi todo va detrás de adaptadores: la demo arranca con las piezas gratis
+(`mock`/`sim`) y se pasa a las de verdad (Claude, WhatsApp) sin tocar la lógica.
+
+## Cómo arrancarlo
+
 ```bash
-cp .env.example .env          # opcional en fase 1 (los valores por defecto ya sirven)
+cp .env.example .env     # opcional: los valores por defecto ya sirven
 docker compose up --build
 ```
-- API: http://localhost:8000  ·  Health: http://localhost:8000/health  ·  Docs: http://localhost:8000/docs
+
+- API: http://localhost:8000 · Docs: http://localhost:8000/docs
 - Web: http://localhost:5173
 
-**Datos de demo** (opcional, para probar sin crear todo a mano): siembra un
-anfitrión y tres pisos con su ficha.
+Para probar sin crear todo a mano, hay datos de ejemplo (un anfitrión y tres
+pisos con su ficha):
+
 ```bash
 docker compose exec api uv run python -m scripts.seed
 ```
-Acceso: `demo@anfitria.com` / `Demo12345!`. Al usar `EMBED_PROVIDER=local` (por
-defecto en compose), la primera consulta descarga el modelo de embeddings (una vez).
 
-### Sin Docker (solo backend)
+Entras con `demo@anfitria.com` / `Demo12345!`. Con `EMBED_PROVIDER=local` (el de
+por defecto), la primera consulta descarga el modelo de embeddings una vez.
+
+Solo el backend, sin Docker:
+
 ```bash
 cd backend
 uv sync
-uv run uvicorn app.main:app --reload    # necesita Postgres/Redis para las fases 2+
-uv run pytest                           # tests
-uv run ruff check .                     # lint
+uv run uvicorn app.main:app --reload   # necesita Postgres/Redis
+uv run pytest                          # tests
+uv run ruff check .                    # lint
 ```
 
-## Estructura
+## Cómo está organizado
+
 ```
 anfitria/
-├── backend/            # FastAPI + worker ARQ (uv, pyproject.toml)
-│   └── app/            # config, main, worker (rutas/modelos/servicios/adaptadores en fases 2+)
-├── frontend/           # React + TS (Vite)
-├── docker-compose.yml  # db (pgvector), redis, api, worker, web
-├── .devcontainer/      # entorno reproducible (VS Code / Codespaces)
-├── .cursor/rules/      # contexto del proyecto para Cursor (AI)
-└── docs/spec.md        # diseño y decisiones
+├── backend/            # FastAPI + worker ARQ
+│   ├── app/            # rutas, modelos, servicios y adaptadores
+│   └── eval/           # el sistema de evaluación del RAG
+├── frontend/           # React + TypeScript (Vite)
+├── docs/               # spec, cómo funciona el RAG y el case study
+└── docker-compose.yml  # db (pgvector), redis, api, worker, web
 ```
 
-## Roadmap
-1. **Andamiaje** — repo, compose, `/health`, React shell, Postgres/Redis. ✅
-2. **Núcleo** — auth, pisos, conocimiento, conversaciones, canal `sim`, IA `mock`, aprobación + auditoría. ✅
-3. **RAG** — pgvector + embeddings; respuestas ancladas al piso. ✅
-4. **Claude real** — adaptador `anthropic` (Claude razona sobre la ficha del piso). ✅
-   Actívalo con `AI_PROVIDER=anthropic` + `ANTHROPIC_API_KEY` en un `.env`.
-5. **WhatsApp real** — canal Meta Cloud API (envío + webhook con firma HMAC). ✅
-   Cómo conectarlo: [`docs/WHATSAPP.md`](docs/WHATSAPP.md).
-6. **Métricas + pulido** — panel de métricas del anfitrión (auto-resueltas, escaladas, tiempo ahorrado). ✅
-7. **Aprendizaje + edificios** — al responder una escalada, el anfitrión puede guardar la respuesta en la ficha (la IA la aprende para la próxima); y conocimiento **compartido por edificio** entre sus pisos. ✅
+## Cómo lo fui construyendo
 
-## Producción / operación
-Además del arranque sin claves, el proyecto está preparado para ir en serio:
+Lo hice por fases, de lo más simple a lo más completo:
 
-- **Migraciones con Alembic** — el esquema se versiona; `create_all` solo se usa
-  en desarrollo. Aplica con `cd backend && uv run alembic upgrade head`.
-- **Webhook robusto** — verificación + firma HMAC, **idempotencia** (descarta los
-  reintentos de Meta por `message id`) y, con `PROCESS_ASYNC=true`, encola la IA
-  en el **worker ARQ** y responde a Meta al instante.
-- **Seguridad** — sesión en **cookie httpOnly** con *refresh* y revocación
-  (logout invalida los tokens), **rate limiting** en login/entrada y límites de
-  longitud en las entradas. Prompt de Claude endurecido contra inyección.
-- **Panel** — la IA **aprende** de las escaladas, avisa al anfitrión cuando algo
-  se escala (campana), registro de **auditoría** consultable y **métricas** con
-  tendencia diaria. Conocimiento editable y borrable por piso y por edificio.
-- **CI** — GitHub Actions corre `ruff` + `pytest` (backend) y `oxlint` + build +
-  `vitest` (frontend) en cada push.
+1. El andamiaje: repo, Docker, `/health`, el shell de React, Postgres y Redis.
+2. El núcleo: login, pisos, su ficha, conversaciones, el canal simulado, la IA
+   `mock` y el flujo de aprobación con auditoría.
+3. El RAG: pgvector + embeddings para que las respuestas se anclen al piso.
+4. Claude de verdad (el adaptador `anthropic`), activable con una clave.
+5. WhatsApp real (Meta Cloud API, con webhook y firma HMAC). Ver [`docs/WHATSAPP.md`](docs/WHATSAPP.md).
+6. Métricas y pulido del panel.
+7. Que la IA aprenda de las escaladas, y conocimiento compartido por edificio.
 
-## Continuar en Cursor
-Este repo trae **reglas de proyecto en `.cursor/rules/`** para que el agente de
-Cursor continúe con todo el contexto (stack, arquitectura, convenciones y fases).
-Abre la carpeta en Cursor y pídele, por ejemplo: *"implementa la Fase 2 siguiendo
-las reglas del proyecto"*. Empieza por `docs/spec.md`.
+## Lo que faltaría para producción
 
-## Créditos
-Proyecto personal de **Daniel López** ([@daaniidam](https://github.com/daaniidam)).
+Es una demo sólida, pero para usarla con huéspedes reales todavía habría trabajo,
+sobre todo operativo:
+
+- El alta real de WhatsApp Business tiene su miga (verificación de Meta,
+  plantillas aprobadas, la ventana de 24 h, opt-in del huésped).
+- Afinar la calidad: ampliar el set de evaluación, calibrar la confianza y
+  vigilar regresiones.
+- Gestionar el conocimiento que se va aprendiendo (detectar lo que queda
+  desactualizado o se contradice).
+- Lo "aburrido" pero necesario: monitorización, mensajes que no son texto
+  (foto/audio) y privacidad de los datos del huésped (GDPR).
+
+Aun así, lo que ya está montado va en serio: migraciones con Alembic, el webhook
+con firma HMAC e idempotencia, sesión en cookie httpOnly con refresh y
+revocación, rate limiting, el prompt de Claude endurecido contra inyección, y CI
+en GitHub Actions corriendo tests y lint en cada push.
+
+## Hecho por
+
+Daniel López — [@daaniidam](https://github.com/daaniidam).
